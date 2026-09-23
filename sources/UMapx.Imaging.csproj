@@ -11,7 +11,7 @@
     <Authors>Valery Asiryan</Authors>
     <Product>UMapx.Imaging</Product>
     <Copyright>Valery Asiryan, © 2015-2026</Copyright>
-    <Description>UMapx sub-library for image processing, filtering and analysis.</Description>
+    <Description>UMapx sub-library for image processing, filtering and analysis on Windows.</Description>
     <PackageProjectUrl>https://github.com/UMapx/UMapx.Imaging</PackageProjectUrl>
     <RepositoryUrl>https://github.com/UMapx/UMapx.Imaging</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

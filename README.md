@@ -1,5 +1,5 @@
 <p align="center"><img width="25%" src="https://raw.githubusercontent.com/UMapx/UMapx/master/docs/umapxnet_big.png" /></p>
-<p align="center">UMapx sub-library for image processing, filtering and analysis</p>
+<p align="center">UMapx sub-library for image processing, filtering and analysis on Windows</p>
 
 # Installation
 

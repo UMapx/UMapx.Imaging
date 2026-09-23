@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using UMapx.Colorspace;
 
 namespace UMapx.Imaging
@@ -45,7 +46,8 @@ namespace UMapx.Imaging
             set
             {
                 this.temperature = value;
-                this.Color = RGB.Temp2RGB(this.temperature);
+                var rgb = RGB.Temp2RGB(this.temperature);
+                this.Color = Color.FromArgb(rgb.Red, rgb.Green, rgb.Blue);
             }
         }
         #endregion

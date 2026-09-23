@@ -84,12 +84,6 @@ Tensor conversions use three flattened channel arrays. `ToByteTensor()` and
 Each channel uses row-major indexing (`y * width + x`), and bitmap-to-float
 conversion retains the **0–255** range. Depth maps use `ushort[height, width]`.
 
-For WebP encoding and decoding, see
-[UMapx.Imaging.Webp](https://github.com/UMapx/UMapx.Imaging.Webp).
-Video capture is provided by
-[UMapx.Video.Windows](https://github.com/UMapx/UMapx.Video.Windows) and
-[UMapx.Video.RealSense](https://github.com/UMapx/UMapx.Video.RealSense).
-
 # Build and test
 
 Keep the repositories in this layout:

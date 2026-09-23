@@ -82,7 +82,7 @@ plane. `FromRGB()` expects the same order.
 Tensor conversions use three flattened channel arrays. `ToByteTensor()` and
 `ToFloatTensor()` default to **B, G, R** order; pass `rgb: true` for **R, G, B**.
 Each channel uses row-major indexing (`y * width + x`), and bitmap-to-float
-conversion retains the **0–255** range. Depth maps use `ushort[height, width]`.
+conversion retains the **0-255** range. Depth maps use `ushort[height, width]`.
 
 # Build and test
 

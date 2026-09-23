@@ -29,7 +29,7 @@ using UMapx.Imaging;
 using var source = new Bitmap("input.jpg");
 using var image = source.To32bpp();
 
-new GaussianBlur(3, 3).Apply(image);
+new GaussianBlur(16, 16).Apply(image);
 image.Save("output.png", ImageFormat.Png);
 ```
 

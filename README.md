@@ -97,10 +97,6 @@ UMapx.Imaging/
   UMapx.Imaging.sln
 ```
 
-Use the split UMapx sources, version 8.0.0.3, which no longer contain the
-`UMapx.Imaging` types. Earlier monolithic UMapx packages define those types
-themselves and conflict with this separate library.
-
 Run from the `UMapx.Imaging` repository root on Windows:
 
 ```shell

@@ -1,62 +1,129 @@
 <p align="center"><img width="25%" src="https://raw.githubusercontent.com/UMapx/UMapx/master/docs/umapxnet_big.png" /></p>
-<p align="center"> UMapx sub-library for image processing, filtering and analysis </p>    
-
-# UMapx
-### Contains ready-made math tools:
-* color spaces and their transformations,
-* real and complex algebra,
-* statistical distributions,
-* special math functions,
-* digital response filters,
-* discrete orthogonal transforms and more.
-
-### Suitable for a wide range of tasks:
-* symbolic and graphical visualization of data,
-* functional, vector and matrix analysis,
-* interpolation, approximation and optimization of functions,
-* numerical differentiation and integration,
-* solving equations,
-* matrix factorization.
-
-### Includes special toolboxes:
-* **Wavelet Toolbox**. Provides wide functionality for the study of discrete and continuous wavelets. The toolbox also includes algorithms for discrete one-dimensional and two-dimensional wavelet transforms of real and complex signals.
-* **Window Toolbox**. Includes a set of tools for synthesizing and orthogonalizing window functions. It implements discrete short-time Fourier and Weyl-Heisenberg transforms ([Gabor analysis](https://github.com/asiryan/Weyl-Heisenberg-Toolbox)) for real and complex signals.
-* **Image Processing Toolbox**. Contains efficient algorithms for processing, correcting, and analyzing 32-bit images.
-
-# Supported types
-**UMapx** supports only
-* 32 bit types - `float`, `Complex32`, etc (compatible with [System.Numerics](https://docs.microsoft.com/ru-ru/dotnet/api/system.numerics?view=netframework-4.8), [NAudio](https://github.com/naudio/NAudio) and other libraries),
-* 32 bit image `BitmapData` format - `Format32bppArgb` (compatible with [AForge.NET](https://github.com/andrewkirillov/AForge.NET), [Accord.NET](https://github.com/accord-net/framework/), etc.).
+<p align="center">UMapx sub-library for image processing, filtering and analysis</p>
 
 # Installation
-You can build **UMapx** from sources or install to your own project using nuget package manager.
-| Specification | OS | Platform | Download | Package |
-|-------------|-------------|-------------|--------------|--------------|
-| .NET Standard 2.0 | Cross-platform | AnyCPU | [Release](https://github.com/asiryan/UMapx.NET/releases/) | [NuGet](https://www.nuget.org/packages/UMapx/) |
 
-# Namespaces
-```c#
-using UMapx.Analysis;
-using UMapx.Colorspace;
-using UMapx.Core;
-using UMapx.Decomposition;
-using UMapx.Distance;
-using UMapx.Distribution;
-using UMapx.Imaging;
-using UMapx.Response;
-using UMapx.Transform;
-using UMapx.Visualization;
-using UMapx.Wavelet;
-using UMapx.Window;
+The current source tree uses a local [UMapx](https://github.com/UMapx/UMapx)
+project for its mathematical operations and color spaces. Place both repositories
+side by side as described in [Build and test](#build-and-test).
+
+Add a reference from your application to `sources/UMapx.Imaging.csproj`.
+For example, from an application directory beside `UMapx.Imaging`:
+
+```shell
+dotnet add MyApp.csproj reference ../UMapx.Imaging/sources/UMapx.Imaging.csproj
 ```
 
-# Examples of usage
-* [Local Laplacian filters](https://github.com/asiryan/Local-Laplacian-filters) - NET Framework desktop application for HDR imaging.
-* [Portrait mode effect](https://github.com/asiryan/Portrait-mode) - High quality implementation of the portrait mode effect using Neural Networks.
-* [FaceONNX](https://github.com/FaceONNX/FaceONNX) - Face analytics library based on deep neural networks and ONNX runtime.
+Replace `MyApp.csproj` with your project name. The UMapx dependency is included
+through the project reference.
 
-# Relation to other frameworks
-**UMapx** builds on several existing frameworks (AForge.NET, Accord.NET, ALGLIB, etc.). Some functions have been ported from other programming languages, toolboxes, and libraries (Fortran, MATLAB, C++, Python). The goal of this generalization is to provide a declarative understanding of digital signal processing algorithms and to improve optimization and performance. **UMapx** is faster than AForge.NET and Accord.NET for common signal-processing tasks and includes a larger set of functions for matrix analysis, linear algebra, and functional analysis.
+# Quick start
+
+Load an image, convert it to 32-bit ARGB, apply a blur and save the result:
+
+```csharp
+using System.Drawing;
+using System.Drawing.Imaging;
+using UMapx.Imaging;
+
+using var source = new Bitmap("input.jpg");
+using var image = source.To32bpp();
+
+new GaussianBlur(3, 3).Apply(image);
+image.Save("output.png", ImageFormat.Png);
+```
+
+Replace `input.jpg` with the path to your image. The snippet uses C# 9 or later.
+`To32bpp()` creates a separate bitmap; filtering changes `image` in place and
+leaves `source` unchanged. Dispose both bitmaps when finished.
+
+# Image processing
+
+| Area | Examples |
+| --- | --- |
+| Color and tone correction | `BrightnessCorrection`, `ContrastCorrection`, `GammaCorrection`, `LevelsCorrection`, `SaturationCorrection` |
+| Filtering and noise reduction | `Convolution`, `BoxBlur`, `GaussianBlur`, `Median`, `Wiener` |
+| Morphology and edge detection | `Erosion`, `Dilatation`, `Opening`, `Closing`, `CannyEdgeDetector`, `FreiChen` |
+| Local contrast and exposure | `CLAHE`, `LocalHistogramEqualization`, `SingleScaleRetinex`, `ShadowsHighlightsCorrection`, `ExposureFusion` |
+| Geometry and composition | `Resize`, `Rotate`, `Crop`, `PerspectiveWarp`, `Merge`, `Chromakey` |
+| Motion and stereo | `MotionDetector`, `MotionEventDetector`, `StereoDisparity`, `StereoAnaglyph` |
+| Matrices, tensors and depth maps | `BitmapMatrix`, `TensorMatrix`, `TensorTransform`, `DepthMatrix`, `DepthTransform` |
+
+The public API is in the `UMapx.Imaging` namespace. Filters also use shared types
+from `UMapx.Core`, such as `SizeInt`, `RangeFloat` and `InterpolationMode`.
+
+# Platform support
+
+The library targets **.NET Standard 2.0** and builds as **AnyCPU**. Its bitmap
+APIs use `System.Drawing.Common` and require Windows; targeting .NET Standard
+does not make bitmap processing portable to Linux or macOS.
+
+The regression suite has been run on Windows with .NET 8 in an x64 process.
+Building and running the tests requires the .NET 8 SDK, or a newer SDK with
+the .NET 8 runtime installed.
+
+# Working with images
+
+`IBitmapFilter.Apply(bitmap)` modifies the supplied bitmap in place.
+`IBitmapFilter2.Apply(destination, source)` writes into the first bitmap and
+reads from the second. Use separate bitmap instances for these arguments.
+Most two-image filters require matching dimensions; geometric filters such as
+`Resize` and `Crop` use a destination sized for their output.
+
+Filters operating on pixel buffers expect `PixelFormat.Format32bppArgb`.
+Use `To32bpp()` to prepare an input image. The `Bitmap` overloads manage pixel
+buffer locking internally. When calling a `BitmapData` overload, the caller
+owns the lock and must release it, including when processing throws.
+
+Matrix conversions use `[height, width]` arrays. `ToRGB()` returns normalized
+`float[,]` planes in **B, G, R** order; `ToRGB(alpha: true)` appends an alpha
+plane. `FromRGB()` expects the same order.
+
+Tensor conversions use three flattened channel arrays. `ToByteTensor()` and
+`ToFloatTensor()` default to **B, G, R** order; pass `rgb: true` for **R, G, B**.
+Each channel uses row-major indexing (`y * width + x`), and bitmap-to-float
+conversion retains the **0–255** range. Depth maps use `ushort[height, width]`.
+
+For WebP encoding and decoding, see
+[UMapx.Imaging.Webp](https://github.com/UMapx/UMapx.Imaging.Webp).
+Video capture is provided by
+[UMapx.Video.Windows](https://github.com/UMapx/UMapx.Video.Windows) and
+[UMapx.Video.RealSense](https://github.com/UMapx/UMapx.Video.RealSense).
+
+# Build and test
+
+Keep the repositories in this layout:
+
+```text
+UMapx/
+  sources/UMapx.csproj
+UMapx.Imaging/
+  sources/UMapx.Imaging.csproj
+  tests/UMapx.Imaging.Tests.csproj
+  UMapx.Imaging.sln
+```
+
+Use the split UMapx sources, version 8.0.0.3, which no longer contain the
+`UMapx.Imaging` types. Earlier monolithic UMapx packages define those types
+themselves and conflict with this separate library.
+
+Run from the `UMapx.Imaging` repository root on Windows:
+
+```shell
+dotnet build UMapx.Imaging.sln -c Release
+dotnet test tests/UMapx.Imaging.Tests.csproj -c Release --no-build --no-restore
+```
+
+The tests cover pixel operations, filter composition, color and tensor
+conversions, depth processing, geometry and bitmap resource handling.
+They are also discoverable in Visual Studio.
+
+The library and XML API documentation are written to
+`sources/bin/Release/netstandard2.0/`. The build also creates a
+`UMapx.Imaging.*.nupkg` package in `sources/bin/Release/`. To install it from a
+local NuGet feed, include the matching `UMapx.*.nupkg` built in
+`../UMapx/sources/bin/Release/` in that feed.
 
 # License
-**MIT**  
+
+MIT

@@ -99,7 +99,12 @@ namespace UMapx.Imaging
             int windowWidth = 2 * rx + 1;
             int windowSize = windowHeight * windowWidth;
 
-            int rank = InternalMatrixOperations.MorphologyHistogramFastFilter.GetFilterRank(Mode, windowSize);
+            int rank = Mode switch
+            {
+                MorphologyMode.Erosion => 1,
+                MorphologyMode.Median => (windowSize + 1) / 2,
+                _ => windowSize,
+            };
             int range = byte.MaxValue + 1;
 
             byte* src = (byte*)bmSrc.Scan0.ToPointer();
@@ -127,9 +132,9 @@ namespace UMapx.Imaging
                 }
 
                 byte* dstPixel = dst + y * stride;
-                dstPixel[0] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histB, rank); // B
-                dstPixel[1] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histG, rank); // G
-                dstPixel[2] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histR, rank); // R
+                dstPixel[0] = GetHistogramRank(histB, rank); // B
+                dstPixel[1] = GetHistogramRank(histG, rank); // G
+                dstPixel[2] = GetHistogramRank(histR, rank); // R
 
                 for (int x = 1; x < width; x++)
                 {
@@ -153,9 +158,9 @@ namespace UMapx.Imaging
                     }
 
                     byte* pDst = dst + y * stride + x * 4;
-                    pDst[0] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histB, rank); // B
-                    pDst[1] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histG, rank); // G
-                    pDst[2] = InternalMatrixOperations.MorphologyHistogramFastFilter.GetHistogramRank(histR, rank); // R
+                    pDst[0] = GetHistogramRank(histB, rank); // B
+                    pDst[1] = GetHistogramRank(histG, rank); // G
+                    pDst[2] = GetHistogramRank(histR, rank); // R
                 }
             });
         }
@@ -210,6 +215,21 @@ namespace UMapx.Imaging
         {
             using var Src = (Bitmap)Data.Clone();
             Apply(Data, Src);
+        }
+        #endregion
+
+        #region Private methods
+        // Keep histogram selection local: the matrix implementation is internal to UMapx.
+        private static byte GetHistogramRank(int[] histogram, int rank)
+        {
+            int count = 0;
+            for (int i = 0; i < histogram.Length; i++)
+            {
+                count += histogram[i];
+                if (count >= rank)
+                    return (byte)i;
+            }
+            return 0;
         }
         #endregion
 

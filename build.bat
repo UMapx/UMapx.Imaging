@@ -1,1 +1,1 @@
-dotnet build sources/UMapx.csproj -c Release
+dotnet build sources/UMapx.Imaging.csproj -c Release

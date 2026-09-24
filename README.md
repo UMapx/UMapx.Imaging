@@ -14,23 +14,20 @@ automatically. The public API is in the `UMapx.Imaging` namespace.
 
 # Quick start
 
-Load an image, convert it to 32-bit ARGB, apply a blur and save the result:
+Load an image, apply a blur and save the result:
 
 ```csharp
 using System.Drawing;
 using System.Drawing.Imaging;
 using UMapx.Imaging;
 
-using var source = new Bitmap("input.jpg");
-using var image = source.To32bpp();
-
+using var image = new Bitmap("input.jpg");
 new GaussianBlur(16, 16).Apply(image);
 image.Save("output.png", ImageFormat.Png);
 ```
 
-Replace `input.jpg` with the path to your image. This example uses C# 9 or later.
-`To32bpp()` creates a separate bitmap in `Format32bppArgb` format. The filter
-modifies that bitmap in place, and the `using` declarations dispose both images
+Replace `input.jpg` with the path to your image. This example uses C# 9 or later. 
+The filter modifies that bitmap in place, and the `using` declarations dispose both images
 at the end of the scope.
 
 # Image processing

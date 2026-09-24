@@ -1,21 +1,16 @@
-<p align="center"><img width="25%" src="https://raw.githubusercontent.com/UMapx/UMapx.Imaging/master/docs/umapxnet_big.png" /></p>
+<p align="center"><img width="25%" src="https://raw.githubusercontent.com/UMapx/UMapx.Imaging/main/docs/umapxnet_big.png" /></p>
 <p align="center">UMapx sub-library for image processing, filtering and analysis on Windows</p>
 
 # Installation
 
-The current source tree uses a local [UMapx](https://github.com/UMapx/UMapx)
-project for its mathematical operations and color spaces. Place both repositories
-side by side as described in [Build and test](#build-and-test).
-
-Add a reference from your application to `sources/UMapx.Imaging.csproj`.
-For example, from an application directory beside `UMapx.Imaging`:
+Install **UMapx.Imaging** using [NuGet](https://www.nuget.org/packages/UMapx.Imaging/):
 
 ```shell
-dotnet add MyApp.csproj reference ../UMapx.Imaging/sources/UMapx.Imaging.csproj
+dotnet add package UMapx.Imaging
 ```
 
-Replace `MyApp.csproj` with your project name. The UMapx dependency is included
-through the project reference.
+NuGet restores the **UMapx** and **System.Drawing.Common** dependencies
+automatically. The public API is in the `UMapx.Imaging` namespace.
 
 # Quick start
 
@@ -33,9 +28,10 @@ new GaussianBlur(16, 16).Apply(image);
 image.Save("output.png", ImageFormat.Png);
 ```
 
-Replace `input.jpg` with the path to your image. The snippet uses C# 9 or later.
-`To32bpp()` creates a separate bitmap; filtering changes `image` in place and
-leaves `source` unchanged. Dispose both bitmaps when finished.
+Replace `input.jpg` with the path to your image. This example uses C# 9 or later.
+`To32bpp()` creates a separate bitmap in `Format32bppArgb` format. The filter
+modifies that bitmap in place, and the `using` declarations dispose both images
+at the end of the scope.
 
 # Image processing
 
@@ -49,18 +45,18 @@ leaves `source` unchanged. Dispose both bitmaps when finished.
 | Motion and stereo | `MotionDetector`, `MotionEventDetector`, `StereoDisparity`, `StereoAnaglyph` |
 | Matrices, tensors and depth maps | `BitmapMatrix`, `TensorMatrix`, `TensorTransform`, `DepthMatrix`, `DepthTransform` |
 
-The public API is in the `UMapx.Imaging` namespace. Filters also use shared types
-from `UMapx.Core`, such as `SizeInt`, `RangeFloat` and `InterpolationMode`.
+Filters use shared types from `UMapx.Core`, including `SizeInt`, `RangeFloat`
+and `InterpolationMode`. Add `using UMapx.Core;` when working with these types.
 
 # Platform support
 
-The library targets **.NET Standard 2.0** and builds as **AnyCPU**. Its bitmap
-APIs use `System.Drawing.Common` and require Windows; targeting .NET Standard
-does not make bitmap processing portable to Linux or macOS.
+The library targets **.NET Standard 2.0** and builds as **AnyCPU**. Bitmap
+processing requires Windows because it uses `System.Drawing.Common`.
+The bitmap APIs are not supported on Linux or macOS.
 
-The regression suite has been run on Windows with .NET 8 in an x64 process.
-Building and running the tests requires the .NET 8 SDK, or a newer SDK with
-the .NET 8 runtime installed.
+Regression tests cover Windows with .NET 8 in an x64 process. Building and
+running the tests requires the .NET 8 SDK, or a newer SDK with the .NET 8
+runtime installed.
 
 # Working with images
 
@@ -86,33 +82,23 @@ conversion retains the **0-255** range. Depth maps use `ushort[height, width]`.
 
 # Build and test
 
-Keep the repositories in this layout:
-
-```text
-UMapx/
-  sources/UMapx.csproj
-UMapx.Imaging/
-  sources/UMapx.Imaging.csproj
-  tests/UMapx.Imaging.Tests.csproj
-  UMapx.Imaging.sln
-```
-
-Run from the `UMapx.Imaging` repository root on Windows:
+Run from the repository root on Windows:
 
 ```shell
 dotnet build UMapx.Imaging.sln -c Release
 dotnet test tests/UMapx.Imaging.Tests.csproj -c Release --no-build --no-restore
 ```
 
-The tests cover pixel operations, filter composition, color and tensor
-conversions, depth processing, geometry and bitmap resource handling.
-They are also discoverable in Visual Studio.
+The solution contains the library and its tests. Dependencies are restored
+from NuGet during the build; no separate UMapx checkout is required.
+
+Tests cover pixel operations, filter composition, color and tensor conversions,
+depth processing, geometry and bitmap resource handling. They are also
+discoverable in Visual Studio.
 
 The library and XML API documentation are written to
 `sources/bin/Release/netstandard2.0/`. The build also creates a
-`UMapx.Imaging.*.nupkg` package in `sources/bin/Release/`. To install it from a
-local NuGet feed, include the matching `UMapx.*.nupkg` built in
-`../UMapx/sources/bin/Release/` in that feed.
+`UMapx.Imaging.*.nupkg` package in `sources/bin/Release/`.
 
 # License
 

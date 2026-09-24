@@ -26,9 +26,9 @@ new GaussianBlur(16, 16).Apply(image);
 image.Save("output.png", ImageFormat.Png);
 ```
 
-Replace `input.jpg` with the path to your image. This example uses C# 9 or later. 
-The filter modifies that bitmap in place, and the `using` declarations dispose both images
-at the end of the scope.
+Replace `input.jpg` with the path to your image. This example uses C# 9 or later.
+The filter modifies the supplied bitmap, and the `using` declaration disposes
+it at the end of the scope.
 
 # Image processing
 
@@ -63,10 +63,14 @@ reads from the second. Use separate bitmap instances for these arguments.
 Most two-image filters require matching dimensions; geometric filters such as
 `Resize` and `Crop` use a destination sized for their output.
 
-Filters operating on pixel buffers expect `PixelFormat.Format32bppArgb`.
-Use `To32bpp()` to prepare an input image. The `Bitmap` overloads manage pixel
-buffer locking internally. When calling a `BitmapData` overload, the caller
-owns the lock and must release it, including when processing throws.
+Most filters process pixel buffers in `PixelFormat.Format32bppArgb` format.
+Their `Bitmap` overloads manage locking and request this buffer format
+internally, so 24-bit RGB images such as the JPEG in the example can be
+processed directly. GDI+ may use a temporary buffer during locking.
+`To32bpp()` creates a separate bitmap in 32-bit ARGB format; it is optional
+for these inputs. When calling a `BitmapData` overload, supply the format
+required by the filter and release the lock yourself, including when
+processing throws.
 
 Matrix conversions use `[height, width]` arrays. `ToRGB()` returns normalized
 `float[,]` planes in **B, G, R** order; `ToRGB(alpha: true)` appends an alpha

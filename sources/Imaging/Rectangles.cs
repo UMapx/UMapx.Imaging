@@ -764,10 +764,10 @@ namespace UMapx.Imaging
         #region Conversions
 
         /// <summary>
-        /// 
+        /// Converts an integer rectangle to a drawing rectangle.
         /// </summary>
-        /// <param name="rectangle"></param>
-        /// <returns></returns>
+        /// <param name="rectangle">Integer rectangle.</param>
+        /// <returns>Rectangle with the same position and size.</returns>
         public static Rectangle ToRectangle(this RectangleInt rectangle)
         {
             return new Rectangle
@@ -779,10 +779,10 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// 
+        /// Converts a floating-point rectangle to a drawing rectangle.
         /// </summary>
-        /// <param name="rectangle"></param>
-        /// <returns></returns>
+        /// <param name="rectangle">Floating-point rectangle.</param>
+        /// <returns>Rectangle with the same position and size.</returns>
         public static RectangleF ToRectangle(this RectangleFloat rectangle)
         {
             return new RectangleF

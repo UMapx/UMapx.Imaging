@@ -4,18 +4,18 @@ using System.Drawing;
 namespace UMapx.Imaging
 {
     /// <summary>
-    /// Using for points operations.
+    /// Provides operations for translating, rotating, bounding, and averaging points, and calculating angles.
     /// </summary>
     public static partial class Points
     {
         #region Operators
 
         /// <summary>
-        /// Returns processed points.
+        /// Translates each point by adding the specified coordinate offsets.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>New array containing the translated points in the original order.</returns>
         public static Point[] Add(this Point[] points, Point point)
         {
             var count = points.Length;
@@ -33,11 +33,11 @@ namespace UMapx.Imaging
             return output;
         }
         /// <summary>
-        /// Returns processed points.
+        /// Translates each point by adding the specified coordinate offsets.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>New array containing the translated points in the original order.</returns>
         public static PointF[] Add(this PointF[] points, PointF point)
         {
             var count = points.Length;
@@ -56,11 +56,11 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns processed points.
+        /// Translates each point by subtracting the specified coordinate offsets.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>New array containing the translated points in the original order.</returns>
         public static Point[] Sub(this Point[] points, Point point)
         {
             var count = points.Length;
@@ -78,11 +78,11 @@ namespace UMapx.Imaging
             return output;
         }
         /// <summary>
-        /// Returns processed points.
+        /// Translates each point by subtracting the specified coordinate offsets.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>New array containing the translated points in the original order.</returns>
         public static PointF[] Sub(this PointF[] points, PointF point)
         {
             var count = points.Length;
@@ -105,12 +105,16 @@ namespace UMapx.Imaging
         #region Special operators
 
         /// <summary>
-        /// Rotates points by angle.
+        /// Rotates each point around the specified center.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="centerPoint">Center point.</param>
-        /// <param name="angle">Angle.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to rotate.</param>
+        /// <param name="centerPoint">Center of rotation.</param>
+        /// <param name="angle">Rotation angle in degrees.</param>
+        /// <returns>New array containing the rotated points in the original order.</returns>
+        /// <remarks>
+        /// Positive angles rotate counterclockwise when Y increases upward, or clockwise in image coordinates where Y increases downward.
+        /// Each resulting coordinate is truncated toward zero to an integer.
+        /// </remarks>
         public static Point[] Rotate(this Point[] points, Point centerPoint, float angle)
         {
             int length = points.Length;
@@ -124,12 +128,16 @@ namespace UMapx.Imaging
             return output;
         }
         /// <summary>
-        /// Rotates points by angle.
+        /// Rotates each point around the specified center.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <param name="centerPoint">Center point.</param>
-        /// <param name="angle">Angle.</param>
-        /// <returns>Points.</returns>
+        /// <param name="points">Points to rotate.</param>
+        /// <param name="centerPoint">Center of rotation.</param>
+        /// <param name="angle">Rotation angle in degrees.</param>
+        /// <returns>New array containing the rotated points in the original order.</returns>
+        /// <remarks>
+        /// Positive angles rotate counterclockwise when Y increases upward, or clockwise in image coordinates where Y increases downward.
+        /// The resulting coordinates are converted to single-precision floating-point values.
+        /// </remarks>
         public static PointF[] Rotate(this PointF[] points, PointF centerPoint, float angle)
         {
             int length = points.Length;
@@ -144,12 +152,16 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Rotates point by angle.
+        /// Rotates a point around the specified center.
         /// </summary>
-        /// <param name="pointToRotate">The point to rotate.</param>
-        /// <param name="centerPoint">The center point of rotation.</param>
-        /// <param name="angleInDegrees">The rotation angle in degrees.</param>
-        /// <returns>Rotated point.</returns>
+        /// <param name="pointToRotate">Point to rotate.</param>
+        /// <param name="centerPoint">Center of rotation.</param>
+        /// <param name="angleInDegrees">Rotation angle in degrees.</param>
+        /// <returns>Rotated point with coordinates truncated toward zero to integers.</returns>
+        /// <remarks>
+        /// Positive angles rotate counterclockwise when Y increases upward, or clockwise in image coordinates where Y increases downward.
+        /// Each resulting coordinate is truncated toward zero to an integer.
+        /// </remarks>
         public static Point Rotate(this Point pointToRotate, Point centerPoint, float angleInDegrees)
         {
             double angleInRadians = angleInDegrees * (Math.PI / 180);
@@ -169,12 +181,16 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Rotates point by angle.
+        /// Rotates a point around the specified center.
         /// </summary>
-        /// <param name="pointToRotate">The point to rotate.</param>
-        /// <param name="centerPoint">The center point of rotation.</param>
-        /// <param name="angleInDegrees">The rotation angle in degrees.</param>
-        /// <returns>Rotated point.</returns>
+        /// <param name="pointToRotate">Point to rotate.</param>
+        /// <param name="centerPoint">Center of rotation.</param>
+        /// <param name="angleInDegrees">Rotation angle in degrees.</param>
+        /// <returns>Rotated point with single-precision floating-point coordinates.</returns>
+        /// <remarks>
+        /// Positive angles rotate counterclockwise when Y increases upward, or clockwise in image coordinates where Y increases downward.
+        /// The resulting coordinates are converted to single-precision floating-point values.
+        /// </remarks>
         public static PointF Rotate(this PointF pointToRotate, PointF centerPoint, float angleInDegrees)
         {
             double angleInRadians = angleInDegrees * (Math.PI / 180);
@@ -195,10 +211,14 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns rectangle from points.
+        /// Calculates the axis-aligned coordinate bounds of a point array.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="points">Nonempty array of points to bound.</param>
+        /// <returns>Rectangle whose left and top edges are the minimum coordinates and whose width and height are the coordinate spans.</returns>
+        /// <remarks>
+        /// Width and height are calculated as maximum minus minimum, without adding an extra pixel.
+        /// Empty arrays are not validated and do not produce meaningful coordinate bounds.
+        /// </remarks>
         public static Rectangle GetRectangle(this Point[] points)
         {
             int length = points.Length;
@@ -225,10 +245,14 @@ namespace UMapx.Imaging
             return new Rectangle(xmin, ymin, xmax - xmin, ymax - ymin);
         }
         /// <summary>
-        /// Returns rectangle from points.
+        /// Calculates the axis-aligned coordinate bounds of a point array.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="points">Nonempty array of points with finite coordinates to bound.</param>
+        /// <returns>Rectangle whose left and top edges are the minimum coordinates and whose width and height are the coordinate spans.</returns>
+        /// <remarks>
+        /// Width and height are calculated as maximum minus minimum, without adding an extra pixel.
+        /// Empty arrays are not validated and do not produce meaningful coordinate bounds.
+        /// </remarks>
         public static RectangleF GetRectangle(this PointF[] points)
         {
             int length = points.Length;
@@ -256,12 +280,20 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Return angle of the three points.
+        /// Calculates a signed angle at the left point using the support and right points.
         /// </summary>
-        /// <param name="left">Left point.</param>
-        /// <param name="right">Right point.</param>
-        /// <param name="support">Supported point.</param>
-        /// <returns>Angle.</returns>
+        /// <param name="left">Vertex of the angle; its Y coordinate also determines the sign multiplier.</param>
+        /// <param name="right">Point defining one ray from the vertex.</param>
+        /// <param name="support">Point defining the other ray from the vertex.</param>
+        /// <returns>Signed angle in approximate degrees, or NaN if the argument passed to the inverse cosine is outside its valid range.</returns>
+        /// <remarks>
+        /// The result is <c>sign * (180 - 57.3 * acos(d))</c>, where d is the normalized dot product
+        /// of the vectors <c>left - support</c> and <c>right - left</c>.
+        /// The sign multiplier is +1 when <c>left.Y &gt; right.Y</c>, and -1 otherwise.
+        /// The value 57.3 approximates the radians-to-degrees conversion factor.
+        /// Coincident points are not rejected; zero-over-zero divisions use the special handling in the private division helper.
+        /// The normalized dot product is not clamped to the interval [-1, 1].
+        /// </remarks>
         public static float GetAngle(this Point left, Point right, Point support)
         {
             double kk = left.Y > right.Y ? 1 : -1;
@@ -281,12 +313,20 @@ namespace UMapx.Imaging
             return (float)(kk * (180.0 - Math.Acos(d) * 57.3));
         }
         /// <summary>
-        /// Return angle of the three points.
+        /// Calculates a signed angle at the left point using the support and right points.
         /// </summary>
-        /// <param name="left">Left point.</param>
-        /// <param name="right">Right point.</param>
-        /// <param name="support">Supported point.</param>
-        /// <returns>Angle.</returns>
+        /// <param name="left">Vertex of the angle; its Y coordinate also determines the sign multiplier.</param>
+        /// <param name="right">Point defining one ray from the vertex.</param>
+        /// <param name="support">Point defining the other ray from the vertex.</param>
+        /// <returns>Signed angle in approximate degrees, or NaN if the argument passed to the inverse cosine is outside its valid range.</returns>
+        /// <remarks>
+        /// The result is <c>sign * (180 - 57.3 * acos(d))</c>, where d is the normalized dot product
+        /// of the vectors <c>left - support</c> and <c>right - left</c>.
+        /// The sign multiplier is +1 when <c>left.Y &gt; right.Y</c>, and -1 otherwise.
+        /// The value 57.3 approximates the radians-to-degrees conversion factor.
+        /// Coincident points are not rejected; zero-over-zero divisions use the special handling in the private division helper.
+        /// The normalized dot product is not clamped to the interval [-1, 1].
+        /// </remarks>
         public static float GetAngle(this PointF left, PointF right, PointF support)
         {
             double kk = left.Y > right.Y ? 1 : -1;
@@ -307,31 +347,35 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns supported point.
+        /// Creates a point by combining coordinates from two points.
         /// </summary>
-        /// <param name="left">Left point.</param>
-        /// <param name="right">Right point.</param>
-        /// <returns>Point.</returns>
+        /// <param name="left">Point supplying the Y coordinate.</param>
+        /// <param name="right">Point supplying the X coordinate.</param>
+        /// <returns>Point with coordinates <c>(right.X, left.Y)</c>.</returns>
         public static Point GetSupportedPoint(this Point left, Point right)
         {
             return new Point(right.X, left.Y);
         }
         /// <summary>
-        /// Returns supported point.
+        /// Creates a point by combining coordinates from two points.
         /// </summary>
-        /// <param name="left">Left point.</param>
-        /// <param name="right">Right point.</param>
-        /// <returns>Point.</returns>
+        /// <param name="left">Point supplying the Y coordinate.</param>
+        /// <param name="right">Point supplying the X coordinate.</param>
+        /// <returns>Point with coordinates <c>(right.X, left.Y)</c>.</returns>
         public static PointF GetSupportedPoint(this PointF left, PointF right)
         {
             return new PointF(right.X, left.Y);
         }
 
         /// <summary>
-        /// Returns mean point.
+        /// Calculates the arithmetic mean of the point coordinates.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <returns>Point.</returns>
+        /// <param name="points">Nonempty array of points to average.</param>
+        /// <returns>Point containing the mean X and Y coordinates, with integer division truncating each result toward zero.</returns>
+        /// <remarks>
+        /// Coordinate sums and division use 32-bit integer arithmetic.
+        /// </remarks>
+        /// <exception cref="DivideByZeroException">The array contains no points.</exception>
         public static Point GetMeanPoint(params Point[] points)
         {
             var point = new Point(0, 0);
@@ -349,10 +393,13 @@ namespace UMapx.Imaging
             return point;
         }
         /// <summary>
-        /// Returns mean point.
+        /// Calculates the arithmetic mean of the point coordinates.
         /// </summary>
-        /// <param name="points">Points.</param>
-        /// <returns>Point.</returns>
+        /// <param name="points">Points to average.</param>
+        /// <returns>Point containing the mean X and Y coordinates, or NaN in both coordinates for an empty array.</returns>
+        /// <remarks>
+        /// Coordinate sums and division use single-precision floating-point arithmetic.
+        /// </remarks>
         public static PointF GetMeanPoint(params PointF[] points)
         {
             var point = new PointF(0, 0);
@@ -375,11 +422,14 @@ namespace UMapx.Imaging
         #region Private methods
 
         /// <summary>
-        /// Returns div result of two variables.
+        /// Divides two values, substituting the smallest positive double value for zero divided by zero.
         /// </summary>
-        /// <param name="a">First.</param>
-        /// <param name="b">Second.</param>
-        /// <returns>Result.</returns>
+        /// <param name="a">Numerator.</param>
+        /// <param name="b">Denominator.</param>
+        /// <returns><see cref="double.Epsilon"/> when both operands are zero; otherwise, the result of dividing the numerator by the denominator.</returns>
+        /// <remarks>
+        /// All other inputs follow normal floating-point division rules, including infinity and NaN results.
+        /// </remarks>
         private static double Div(this double a, double b)
         {
             if (a == 0 && b == 0)

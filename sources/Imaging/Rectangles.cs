@@ -5,18 +5,18 @@ using UMapx.Core;
 namespace UMapx.Imaging
 {
     /// <summary>
-    /// Using for rectangles operations.
+    /// Provides rectangle translation, geometry, resizing, clipping, and conversion operations.
     /// </summary>
     public static partial class Rectangles
     {
         #region Operators
 
         /// <summary>
-        /// Returns processed rectangle.
+        /// Translates a rectangle by adding the specified offset to its position.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>Translated rectangle with the original width and height.</returns>
         public static Rectangle Add(this Rectangle rectangle, Point point)
         {
             return new Rectangle
@@ -28,11 +28,11 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Returns processed rectangle.
+        /// Translates a rectangle by adding the specified offset to its position.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>Translated rectangle with the original width and height.</returns>
         public static RectangleF Add(this RectangleF rectangle, PointF point)
         {
             return new RectangleF
@@ -45,11 +45,11 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns processed rectangle.
+        /// Translates a rectangle by subtracting the specified offset from its position.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>Translated rectangle with the original width and height.</returns>
         public static Rectangle Sub(this Rectangle rectangle, Point point)
         {
             return new Rectangle
@@ -61,11 +61,11 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Returns processed rectangle.
+        /// Translates a rectangle by subtracting the specified offset from its position.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>Translated rectangle with the original width and height.</returns>
         public static RectangleF Sub(this RectangleF rectangle, PointF point)
         {
             return new RectangleF
@@ -78,11 +78,11 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns processed rectangles.
+        /// Translates each rectangle by adding the specified offset to its position.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangles.</returns>
+        /// <param name="rectangles">Rectangles to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>New array of translated rectangles in the original order, with unchanged sizes.</returns>
         public static Rectangle[] Add(this Rectangle[] rectangles, Point point)
         {
             var count = rectangles.Length;
@@ -96,11 +96,11 @@ namespace UMapx.Imaging
             return output;
         }
         /// <summary>
-        /// Returns processed rectangles.
+        /// Translates each rectangle by adding the specified offset to its position.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangles.</returns>
+        /// <param name="rectangles">Rectangles to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to add.</param>
+        /// <returns>New array of translated rectangles in the original order, with unchanged sizes.</returns>
         public static RectangleF[] Add(this RectangleF[] rectangles, PointF point)
         {
             var count = rectangles.Length;
@@ -115,11 +115,11 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns processed rectangles.
+        /// Translates each rectangle by subtracting the specified offset from its position.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangles.</returns>
+        /// <param name="rectangles">Rectangles to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>New array of translated rectangles in the original order, with unchanged sizes.</returns>
         public static Rectangle[] Sub(this Rectangle[] rectangles, Point point)
         {
             var count = rectangles.Length;
@@ -133,11 +133,11 @@ namespace UMapx.Imaging
             return output;
         }
         /// <summary>
-        /// Returns processed rectangles.
+        /// Translates each rectangle by subtracting the specified offset from its position.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="point">Point.</param>
-        /// <returns>Rectangles.</returns>
+        /// <param name="rectangles">Rectangles to translate.</param>
+        /// <param name="point">Horizontal and vertical offsets to subtract.</param>
+        /// <returns>New array of translated rectangles in the original order, with unchanged sizes.</returns>
         public static RectangleF[] Sub(this RectangleF[] rectangles, PointF point)
         {
             var count = rectangles.Length;
@@ -156,10 +156,10 @@ namespace UMapx.Imaging
         #region Special operators
 
         /// <summary>
-        /// Returns four points from rectangle.
+        /// Returns the four corners of a rectangle.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Points.</returns>
+        /// <param name="rectangle">Rectangle whose corners are returned.</param>
+        /// <returns>New array containing the top-left, top-right, bottom-right, and bottom-left corners, in that order.</returns>
         public static Point[] ToPoints(this Rectangle rectangle)
         {
             return new Point[]
@@ -171,10 +171,10 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Returns four points from rectangle.
+        /// Returns the four corners of a rectangle.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Points.</returns>
+        /// <param name="rectangle">Rectangle whose corners are returned.</param>
+        /// <returns>New array containing the top-left, top-right, bottom-right, and bottom-left corners, in that order.</returns>
         public static PointF[] ToPoints(this RectangleF rectangle)
         {
             return new PointF[]
@@ -187,10 +187,14 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns rectangle from four points.
+        /// Creates a rectangle from an array of four corner points.
         /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
+        /// <param name="points">Four points ordered as top-left, top-right, bottom-right, and bottom-left.</param>
+        /// <returns>Rectangle with its left and top edges taken from the first point and its right and bottom edges from the third point.</returns>
+        /// <remarks>
+        /// The second and fourth points are not used or validated.
+        /// </remarks>
+        /// <exception cref="ArgumentException">The array does not contain exactly four points.</exception>
         public static Rectangle FromPoints(this Point[] points)
         {
             if (points.Length != 4)
@@ -203,10 +207,14 @@ namespace UMapx.Imaging
                 points[2].Y);
         }
         /// <summary>
-        /// Returns rectangle from four points.
+        /// Creates a rectangle from an array of four corner points.
         /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
+        /// <param name="points">Four points ordered as top-left, top-right, bottom-right, and bottom-left.</param>
+        /// <returns>Rectangle with its left and top edges taken from the first point and its right and bottom edges from the third point.</returns>
+        /// <remarks>
+        /// The second and fourth points are not used or validated.
+        /// </remarks>
+        /// <exception cref="ArgumentException">The array does not contain exactly four points.</exception>
         public static RectangleF FromPoints(this PointF[] points)
         {
             if (points.Length != 4)
@@ -220,10 +228,10 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns point from rectangle.
+        /// Returns the location of a rectangle.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Point.</returns>
+        /// <param name="rectangle">Rectangle whose location is returned.</param>
+        /// <returns>Point containing the rectangle's X and Y coordinates.</returns>
         public static Point GetPoint(this Rectangle rectangle)
         {
             return new Point
@@ -233,10 +241,10 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Returns point from rectangle.
+        /// Returns the location of a rectangle.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Point.</returns>
+        /// <param name="rectangle">Rectangle whose location is returned.</param>
+        /// <returns>Point containing the rectangle's X and Y coordinates.</returns>
         public static PointF GetPoint(this RectangleF rectangle)
         {
             return new PointF
@@ -247,56 +255,60 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns size area.
+        /// Calculates the product of a size's width and height.
         /// </summary>
-        /// <param name="size">Size.</param>
-        /// <returns>Area.</returns>
+        /// <param name="size">Size whose area is calculated.</param>
+        /// <returns>Width multiplied by height, without taking the absolute value.</returns>
         public static int Area(this Size size)
         {
             return size.Width * size.Height;
         }
         /// <summary>
-        /// Returns size area.
+        /// Calculates the product of a size's width and height.
         /// </summary>
-        /// <param name="size">Size.</param>
-        /// <returns>Area.</returns>
+        /// <param name="size">Size whose area is calculated.</param>
+        /// <returns>Width multiplied by height, without taking the absolute value.</returns>
         public static float Area(this SizeF size)
         {
             return size.Width * size.Height;
         }
         /// <summary>
-        /// Returns rectangle area.
+        /// Calculates the product of a rectangle's width and height.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Area.</returns>
+        /// <param name="rectangle">Rectangle whose area is calculated.</param>
+        /// <returns>Width multiplied by height, without taking the absolute value.</returns>
         public static int Area(this Rectangle rectangle)
         {
             return rectangle.Width * rectangle.Height;
         }
         /// <summary>
-        /// Returns rectangle area.
+        /// Calculates the product of a rectangle's width and height.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Area.</returns>
+        /// <param name="rectangle">Rectangle whose area is calculated.</param>
+        /// <returns>Width multiplied by height, without taking the absolute value.</returns>
         public static float Area(this RectangleF rectangle)
         {
             return rectangle.Width * rectangle.Height;
         }
 
         /// <summary>
-        /// Returns the maximum rectangle.
+        /// Selects the rectangle with the largest width-height product.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to compare by area.</param>
+        /// <returns>First rectangle with the largest qualifying area, or the first input rectangle if none qualifies; <see cref="Rectangle.Empty"/> for an empty array.</returns>
+        /// <remarks>
+        /// Rectangles whose <see cref="Rectangle.IsEmpty"/> property is true are skipped.
+        /// Only areas greater than <see cref="int.MinValue"/> qualify for selection.
+        /// </remarks>
         public static Rectangle Max(params Rectangle[] rectangles)
         {
-            // params
+            // Initialize the area comparison and fallback index.
             var length = rectangles.Length;
             var rectangle = Rectangle.Empty;
             var area = int.MinValue;
             var max = 0;
 
-            // do job
+            // Keep the first rectangle with the largest qualifying area.
             for (int i = 0; i < length; i++)
             {
                 rectangle = rectangles[i];
@@ -313,23 +325,27 @@ namespace UMapx.Imaging
                 }
             }
 
-            // output
+            // Fall back to the first input rectangle, or Empty for an empty array.
             return length > 0 ? rectangles[max] : rectangle;
         }
         /// <summary>
-        /// Returns the maximum rectangle.
+        /// Selects the rectangle with the largest width-height product.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to compare by area.</param>
+        /// <returns>First rectangle with the largest qualifying area, or the first input rectangle if none qualifies; <see cref="RectangleF.Empty"/> for an empty array.</returns>
+        /// <remarks>
+        /// Rectangles whose <see cref="RectangleF.IsEmpty"/> property is true are skipped.
+        /// Only areas greater than <see cref="float.MinValue"/> qualify for selection. NaN areas are ignored.
+        /// </remarks>
         public static RectangleF Max(params RectangleF[] rectangles)
         {
-            // params
+            // Initialize the area comparison and fallback index.
             var length = rectangles.Length;
             var rectangle = RectangleF.Empty;
             var area = float.MinValue;
             var max = 0;
 
-            // do job
+            // Keep the first rectangle with the largest qualifying area.
             for (int i = 0; i < length; i++)
             {
                 rectangle = rectangles[i];
@@ -346,24 +362,28 @@ namespace UMapx.Imaging
                 }
             }
 
-            // output
+            // Fall back to the first input rectangle, or Empty for an empty array.
             return length > 0 ? rectangles[max] : rectangle;
         }
 
         /// <summary>
-        /// Returns the minimum rectangle.
+        /// Selects the rectangle with the smallest width-height product.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to compare by area.</param>
+        /// <returns>First rectangle with the smallest qualifying area, or <see cref="Rectangle.Empty"/> if none qualifies.</returns>
+        /// <remarks>
+        /// Rectangles whose <see cref="Rectangle.IsEmpty"/> property is true are skipped.
+        /// Only areas less than <see cref="int.MaxValue"/> qualify for selection.
+        /// </remarks>
         public static Rectangle Min(params Rectangle[] rectangles)
         {
-            // params
+            // Initialize the area comparison with no rectangle selected.
             var length = rectangles.Length;
             var rectangle = Rectangle.Empty;
             var area = int.MaxValue;
             var min = -1;
 
-            // do job
+            // Keep the first rectangle with the smallest qualifying area.
             for (int i = 0; i < length; i++)
             {
                 rectangle = rectangles[i];
@@ -380,23 +400,27 @@ namespace UMapx.Imaging
                 }
             }
 
-            // output
+            // Return Empty if no rectangle was selected.
             return min >= 0 ? rectangles[min] : Rectangle.Empty;
         }
         /// <summary>
-        /// Returns the minimum rectangle.
+        /// Selects the rectangle with the smallest width-height product.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to compare by area.</param>
+        /// <returns>First rectangle with the smallest qualifying area, or <see cref="RectangleF.Empty"/> if none qualifies.</returns>
+        /// <remarks>
+        /// Rectangles whose <see cref="RectangleF.IsEmpty"/> property is true are skipped.
+        /// Only areas less than <see cref="float.MaxValue"/> qualify for selection. NaN areas are ignored.
+        /// </remarks>
         public static RectangleF Min(params RectangleF[] rectangles)
         {
-            // params
+            // Initialize the area comparison with no rectangle selected.
             var length = rectangles.Length;
             var rectangle = RectangleF.Empty;
             var area = float.MaxValue;
             var min = -1;
 
-            // do job
+            // Keep the first rectangle with the smallest qualifying area.
             for (int i = 0; i < length; i++)
             {
                 rectangle = rectangles[i];
@@ -413,15 +437,18 @@ namespace UMapx.Imaging
                 }
             }
 
-            // output
+            // Return Empty if no rectangle was selected.
             return min >= 0 ? rectangles[min] : Rectangle.Empty;
         }
 
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Converts a rectangle to a square using its larger dimension.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Square with a side equal to the larger of the original width and height.</returns>
+        /// <remarks>
+        /// Half of each dimension increase is subtracted from the corresponding coordinate using integer division, so the center may shift by half a unit.
+        /// </remarks>
         public static Rectangle ToBox(this Rectangle rectangle)
         {
             var max = Math.Max(rectangle.Width, rectangle.Height);
@@ -437,10 +464,13 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Converts a rectangle to a square using its larger dimension.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Square with a side equal to the larger of the original width and height.</returns>
+        /// <remarks>
+        /// The original center is preserved.
+        /// </remarks>
         public static RectangleF ToBox(this RectangleF rectangle)
         {
             var max = Math.Max(rectangle.Width, rectangle.Height);
@@ -457,11 +487,14 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Resizes a rectangle by a relative change in both dimensions.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="scale">Factor.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to resize.</param>
+        /// <param name="scale">Relative change in width and height; for example, 0.1 increases both by 10% before truncation.</param>
+        /// <returns>Resized rectangle with coordinates and dimensions truncated toward zero to integers.</returns>
+        /// <remarks>
+        /// Before truncation, each dimension is multiplied by 1 plus <paramref name="scale"/> and the center is preserved.
+        /// </remarks>
         public static Rectangle ToBox(this Rectangle rectangle, float scale)
         {
             float gainX = rectangle.Width * scale;
@@ -475,11 +508,15 @@ namespace UMapx.Imaging
                 );
         }
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Resizes a rectangle by a relative change in both dimensions.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="scale">Factor.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle to resize.</param>
+        /// <param name="scale">Relative change in width and height; for example, 0.1 increases both by 10% before truncation.</param>
+        /// <returns>Resized rectangle with coordinates and dimensions truncated toward zero to integers.</returns>
+        /// <remarks>
+        /// Before truncation, each dimension is multiplied by 1 plus <paramref name="scale"/> and the center is preserved.
+        /// This truncation also applies to the floating-point result.
+        /// </remarks>
         public static RectangleF ToBox(this RectangleF rectangle, float scale)
         {
             float gainX = rectangle.Width * scale;
@@ -494,10 +531,13 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Converts each rectangle to a square using its larger dimension.
         /// </summary>
-        /// <param name="rectangles">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to convert.</param>
+        /// <returns>New array of squares in the original order, each with a side equal to the larger original dimension.</returns>
+        /// <remarks>
+        /// Half of each dimension increase is subtracted from the corresponding coordinate using integer division, so the center may shift by half a unit.
+        /// </remarks>
         public static Rectangle[] ToBox(params Rectangle[] rectangles)
         {
             int length = rectangles.Length;
@@ -511,10 +551,13 @@ namespace UMapx.Imaging
             return newRectangles;
         }
         /// <summary>
-        /// Returns rectangle scaled to box.
+        /// Converts each rectangle to a square using its larger dimension.
         /// </summary>
-        /// <param name="rectangles">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangles">Rectangles to convert.</param>
+        /// <returns>New array of squares in the original order, each with a side equal to the larger original dimension.</returns>
+        /// <remarks>
+        /// The original center is preserved.
+        /// </remarks>
         public static RectangleF[] ToBox(params RectangleF[] rectangles)
         {
             int length = rectangles.Length;
@@ -529,11 +572,15 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Returns rectangle scaled to box with image size.
+        /// Resizes each rectangle by a relative change in both dimensions.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="factor">Factor.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="factor">Relative change in width and height; for example, 0.1 increases both by 10% before truncation.</param>
+        /// <param name="rectangles">Rectangles to resize.</param>
+        /// <returns>New array of resized rectangles in the original order.</returns>
+        /// <remarks>
+        /// Before truncation, each dimension is multiplied by 1 plus <paramref name="factor"/> and the center is preserved.
+        /// Each rectangle's coordinates and dimensions are truncated toward zero to integers.
+        /// </remarks>
         public static Rectangle[] ToBox(float factor, params Rectangle[] rectangles)
         {
             int length = rectangles.Length;
@@ -547,11 +594,16 @@ namespace UMapx.Imaging
             return newRectangles;
         }
         /// <summary>
-        /// Returns rectangle scaled to box with image size.
+        /// Resizes each rectangle by a relative change in both dimensions.
         /// </summary>
-        /// <param name="rectangles">Rectangles.</param>
-        /// <param name="factor">Factor.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="factor">Relative change in width and height; for example, 0.1 increases both by 10% before truncation.</param>
+        /// <param name="rectangles">Rectangles to resize.</param>
+        /// <returns>New array of resized rectangles in the original order.</returns>
+        /// <remarks>
+        /// Before truncation, each dimension is multiplied by 1 plus <paramref name="factor"/> and the center is preserved.
+        /// Each rectangle's coordinates and dimensions are truncated toward zero to integers.
+        /// This truncation also applies to the floating-point result.
+        /// </remarks>
         public static RectangleF[] ToBox(float factor, params RectangleF[] rectangles)
         {
             int length = rectangles.Length;
@@ -566,11 +618,11 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Implements IoU operator.
+        /// Calculates the intersection-over-union (IoU) ratio of two rectangles.
         /// </summary>
-        /// <param name="a">First rectangle.</param>
-        /// <param name="b">Second rectangle.</param>
-        /// <returns>Value.</returns>
+        /// <param name="a">First rectangle, with nonnegative width and height.</param>
+        /// <param name="b">Second rectangle, with nonnegative width and height.</param>
+        /// <returns>Intersection area divided by union area, or zero if the intersection area is zero.</returns>
         public static float IoU(this Rectangle a, Rectangle b)
         {
             var xA = Math.Max(a.Left, b.Left);
@@ -578,7 +630,7 @@ namespace UMapx.Imaging
             var xB = Math.Min(a.Right, b.Right);
             var yB = Math.Min(a.Bottom, b.Bottom);
 
-            // Convert before multiplying so the intersection area cannot overflow Int32.
+            // Convert one factor to float so area multiplication does not overflow Int32.
             var interArea = Math.Abs(Math.Max(xB - xA, 0) * (float)Math.Max(yB - yA, 0));
 
             if (interArea == 0)
@@ -590,11 +642,11 @@ namespace UMapx.Imaging
             return interArea / (float)(boxAArea + boxBArea - interArea);
         }
         /// <summary>
-        /// Implements IoU operator.
+        /// Calculates the intersection-over-union (IoU) ratio of two rectangles.
         /// </summary>
-        /// <param name="a">First rectangle.</param>
-        /// <param name="b">Second rectangle.</param>
-        /// <returns>Value.</returns>
+        /// <param name="a">First rectangle, with nonnegative width and height.</param>
+        /// <param name="b">Second rectangle, with nonnegative width and height.</param>
+        /// <returns>Intersection area divided by union area, or zero if the intersection area is zero.</returns>
         public static float IoU(this RectangleF a, RectangleF b)
         {
             var xA = Math.Max(a.Left, b.Left);
@@ -602,7 +654,7 @@ namespace UMapx.Imaging
             var xB = Math.Min(a.Right, b.Right);
             var yB = Math.Min(a.Bottom, b.Bottom);
 
-            // Convert before multiplying so the intersection area cannot overflow Int32.
+            // Clamp intersection dimensions to zero when the rectangles do not overlap.
             var interArea = Math.Abs(Math.Max(xB - xA, 0) * (float)Math.Max(yB - yA, 0));
 
             if (interArea == 0)
@@ -615,12 +667,16 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Implements scale operator.
+        /// Resizes a rectangle by independent relative changes in width and height.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="kx">Factor for x axis.</param>
-        /// <param name="ky">Factor for y axis.</param>
-        /// <returns></returns>
+        /// <param name="rectangle">Rectangle to resize.</param>
+        /// <param name="kx">Relative width change; for example, 0.1 adds 10% of the width before truncation. Defaults to zero.</param>
+        /// <param name="ky">Relative height change; for example, 0.1 adds 10% of the height before truncation. Defaults to zero.</param>
+        /// <returns>Rectangle with the computed dimension changes added and half of each change subtracted from its position.</returns>
+        /// <remarks>
+        /// Width and height changes are truncated toward zero to integers before being added.
+        /// Position offsets use integer division by two, so the center may shift by half a unit.
+        /// </remarks>
         public static Rectangle Scale(this Rectangle rectangle, float kx = 0.0f, float ky = 0.0f)
         {
             var x = rectangle.X;
@@ -640,12 +696,16 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Implements scale operator.
+        /// Resizes a rectangle by independent relative changes in width and height.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <param name="kx">Factor for x axis.</param>
-        /// <param name="ky">Factor for y axis.</param>
-        /// <returns></returns>
+        /// <param name="rectangle">Rectangle to resize.</param>
+        /// <param name="kx">Relative width change; for example, 0.1 adds 10% of the width before truncation. Defaults to zero.</param>
+        /// <param name="ky">Relative height change; for example, 0.1 adds 10% of the height before truncation. Defaults to zero.</param>
+        /// <returns>Rectangle with the computed dimension changes added and half of each change subtracted from its position.</returns>
+        /// <remarks>
+        /// Width and height changes are truncated toward zero to integers before being added.
+        /// Position offsets use integer division by two, so the center may shift by half a unit. These integer calculations also apply to floating-point rectangles.
+        /// </remarks>
         public static RectangleF Scale(this RectangleF rectangle, float kx = 0.0f, float ky = 0.0f)
         {
             var x = rectangle.X;
@@ -666,10 +726,13 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Implements scale operator.
+        /// Converts a rectangle to a square using its diagonal length.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle whose diagonal determines the square's size.</param>
+        /// <returns>Square with a side equal to the original diagonal length truncated toward zero to an integer.</returns>
+        /// <remarks>
+        /// Position offsets use integer division by two, so the center may shift by half a unit.
+        /// </remarks>
         public static Rectangle Scale(this Rectangle rectangle)
         {
             var r = (int)Math.Sqrt(rectangle.Width * rectangle.Width + rectangle.Height * rectangle.Height);
@@ -690,10 +753,13 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Implements scale operator.
+        /// Converts a rectangle to a square using its diagonal length.
         /// </summary>
-        /// <param name="rectangle">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="rectangle">Rectangle whose diagonal determines the square's size.</param>
+        /// <returns>Square with a side equal to the original diagonal length truncated toward zero to an integer.</returns>
+        /// <remarks>
+        /// The original center is preserved; the side length is still truncated to an integer.
+        /// </remarks>
         public static RectangleF Scale(this RectangleF rectangle)
         {
             var r = (int)Math.Sqrt(rectangle.Width * rectangle.Width + rectangle.Height * rectangle.Height);
@@ -715,11 +781,15 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Implements clamp operator.
+        /// Clips a rectangle against the bounds of another rectangle.
         /// </summary>
-        /// <param name="first">Rectangle.</param>
-        /// <param name="second">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="first">Rectangle to clip; negative dimensions are normalized by moving its position.</param>
+        /// <param name="second">Clipping bounds, expected to have nonnegative width and height.</param>
+        /// <returns>Rectangle starting at the maximum left and top coordinates, with each intersection dimension clamped to zero.</returns>
+        /// <remarks>
+        /// Only the first rectangle is normalized.
+        /// A disjoint result has zero width or height, but its position is retained and it need not equal <see cref="Rectangle.Empty"/>.
+        /// </remarks>
         public static Rectangle Clamp(this Rectangle first, Rectangle second)
         {
             if (first.Width < 0) { first.X += first.Width; first.Width = -first.Width; }
@@ -737,11 +807,15 @@ namespace UMapx.Imaging
             return new Rectangle(x, y, w, h);
         }
         /// <summary>
-        /// Implements clamp operator.
+        /// Clips a rectangle against the bounds of another rectangle.
         /// </summary>
-        /// <param name="first">Rectangle.</param>
-        /// <param name="second">Rectangle.</param>
-        /// <returns>Rectangle.</returns>
+        /// <param name="first">Rectangle to clip; negative dimensions are normalized by moving its position.</param>
+        /// <param name="second">Clipping bounds, expected to have nonnegative width and height.</param>
+        /// <returns>Rectangle starting at the maximum left and top coordinates, with each intersection dimension clamped to zero.</returns>
+        /// <remarks>
+        /// Only the first rectangle is normalized.
+        /// A disjoint result has zero width or height, but its position is retained and it need not equal <see cref="RectangleF.Empty"/>.
+        /// </remarks>
         public static RectangleF Clamp(this RectangleF first, RectangleF second)
         {
             if (first.Width < 0) { first.X += first.Width; first.Width = -first.Width; }
@@ -764,10 +838,10 @@ namespace UMapx.Imaging
         #region Conversions
 
         /// <summary>
-        /// Converts an integer rectangle to a drawing rectangle.
+        /// Converts a <see cref="RectangleInt"/> to a <see cref="Rectangle"/>.
         /// </summary>
-        /// <param name="rectangle">Integer rectangle.</param>
-        /// <returns>Rectangle with the same position and size.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Rectangle with the same position, width, and height.</returns>
         public static Rectangle ToRectangle(this RectangleInt rectangle)
         {
             return new Rectangle
@@ -779,10 +853,10 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Converts a floating-point rectangle to a drawing rectangle.
+        /// Converts a <see cref="RectangleFloat"/> to a <see cref="RectangleF"/>.
         /// </summary>
-        /// <param name="rectangle">Floating-point rectangle.</param>
-        /// <returns>Rectangle with the same position and size.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Rectangle with the same position, width, and height.</returns>
         public static RectangleF ToRectangle(this RectangleFloat rectangle)
         {
             return new RectangleF
@@ -795,10 +869,10 @@ namespace UMapx.Imaging
         }
 
         /// <summary>
-        /// Converts an integer rectangle to a drawing rectangle.
+        /// Converts a <see cref="Rectangle"/> to a <see cref="RectangleInt"/>.
         /// </summary>
-        /// <param name="rectangle">Integer rectangle.</param>
-        /// <returns>Rectangle with the same position and size.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Rectangle with the same position, width, and height.</returns>
         public static RectangleInt FromRectangle(this Rectangle rectangle)
         {
             return new RectangleInt
@@ -810,10 +884,10 @@ namespace UMapx.Imaging
             };
         }
         /// <summary>
-        /// Converts a floating-point rectangle to a drawing rectangle.
+        /// Converts a <see cref="RectangleF"/> to a <see cref="RectangleFloat"/>.
         /// </summary>
-        /// <param name="rectangle">Floating-point rectangle.</param>
-        /// <returns>Rectangle with the same position and size.</returns>
+        /// <param name="rectangle">Rectangle to convert.</param>
+        /// <returns>Rectangle with the same position, width, and height.</returns>
         public static RectangleFloat FromRectangle(this RectangleF rectangle)
         {
             return new RectangleFloat

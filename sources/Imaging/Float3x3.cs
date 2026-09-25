@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using UMapx.Core;
 
 namespace UMapx.Imaging
@@ -71,7 +70,7 @@ namespace UMapx.Imaging
         /// If the destination quad is (nearly) affine, a simplified affine mapping is used.
         /// Otherwise the full projective warp is constructed. Based on GIMP’s homography derivation.
         /// </remarks>
-        public static Float3x3 Perspective(Rectangle rectangle, PointFloat t1, PointFloat t2, PointFloat t3, PointFloat t4)
+        public static Float3x3 Perspective(RectangleInt rectangle, PointFloat t1, PointFloat t2, PointFloat t3, PointFloat t4)
         {
 
             var scalex = 1.0f;

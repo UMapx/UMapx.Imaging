@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using UMapx.Core;
 
 namespace UMapx.Imaging
 {
@@ -415,6 +416,64 @@ namespace UMapx.Imaging
             point.Y /= length;
 
             return point;
+        }
+
+        #endregion
+
+        #region Conversions
+
+        /// <summary>
+        /// Converts a <see cref="PointInt"/> to a <see cref="Point"/>.
+        /// </summary>
+        /// <param name="point">Point to convert.</param>
+        /// <returns>Point with the same X and Y coordinates.</returns>
+        public static Point ToPoint(this PointInt point)
+        {
+            return new Point
+            {
+                X = point.X,
+                Y = point.Y
+            };
+        }
+        /// <summary>
+        /// Converts a <see cref="PointFloat"/> to a <see cref="PointF"/>.
+        /// </summary>
+        /// <param name="point">Point to convert.</param>
+        /// <returns>Point with the same X and Y coordinates.</returns>
+        public static PointF ToPoint(this PointFloat point)
+        {
+            return new PointF
+            {
+                X = point.X,
+                Y = point.Y
+            };
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Point"/> to a <see cref="PointInt"/>.
+        /// </summary>
+        /// <param name="point">Point to convert.</param>
+        /// <returns>Point with the same X and Y coordinates.</returns>
+        public static PointInt FromPoint(this Point point)
+        {
+            return new PointInt
+            {
+                X = point.X,
+                Y = point.Y
+            };
+        }
+        /// <summary>
+        /// Converts a <see cref="PointF"/> to a <see cref="PointFloat"/>.
+        /// </summary>
+        /// <param name="point">Point to convert.</param>
+        /// <returns>Point with the same X and Y coordinates.</returns>
+        public static PointFloat FromPoint(this PointF point)
+        {
+            return new PointFloat
+            {
+                X = point.X,
+                Y = point.Y
+            };
         }
 
         #endregion

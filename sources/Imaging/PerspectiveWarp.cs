@@ -120,7 +120,7 @@ namespace UMapx.Imaging
 
             var width = bmData.Width;
             var height = bmData.Height;
-            var rectangle = new Rectangle(0, 0, width, height);
+            var rectangle = new RectangleInt(0, 0, width, height);
             var transform = Float3x3.Perspective(rectangle, TopLeft, TopRight, BottomLeft, BottomRight);
             transform = transform.Invert();
 

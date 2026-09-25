@@ -794,6 +794,37 @@ namespace UMapx.Imaging
             };
         }
 
+        /// <summary>
+        /// Converts an integer rectangle to a drawing rectangle.
+        /// </summary>
+        /// <param name="rectangle">Integer rectangle.</param>
+        /// <returns>Rectangle with the same position and size.</returns>
+        public static RectangleInt FromRectangle(this Rectangle rectangle)
+        {
+            return new RectangleInt
+            {
+                X = rectangle.X,
+                Y = rectangle.Y,
+                Width = rectangle.Width,
+                Height = rectangle.Height
+            };
+        }
+        /// <summary>
+        /// Converts a floating-point rectangle to a drawing rectangle.
+        /// </summary>
+        /// <param name="rectangle">Floating-point rectangle.</param>
+        /// <returns>Rectangle with the same position and size.</returns>
+        public static RectangleFloat FromRectangle(this RectangleF rectangle)
+        {
+            return new RectangleFloat
+            {
+                X = rectangle.X,
+                Y = rectangle.Y,
+                Width = rectangle.Width,
+                Height = rectangle.Height
+            };
+        }
+
         #endregion
     }
 }

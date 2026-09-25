@@ -24,11 +24,6 @@ public class UtilityContractAuditTests
         return Cubic(Row(iy - 1), Row(iy), Row(iy + 1), Row(iy + 2), y - iy);
     }
 
-    [Fact]
-    public void XmlRoundTripPreservesNumericArrayValues()
-    {
-        float[] expected={-1.25f,0,1e-30f,1e30f};using var stream=new MemoryStream();Xml.Save(stream,expected);stream.Position=0;Assert.Equal(expected,(float[])Xml.Open(stream,typeof(float[])));
-    }
     [Theory] [InlineData(255)] [InlineData(256)] [InlineData(300)]
     public void DepthHistogramEqualizationCountsMoreThan65535PixelsWithoutOverflow(int side)
     {

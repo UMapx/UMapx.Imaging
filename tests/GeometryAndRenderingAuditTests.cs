@@ -30,7 +30,7 @@ public class GeometryAndRenderingAuditTests
         var a=new Rectangle(3,-7,20,14);var delta=new Point(-5,9);Assert.Equal(a,Rectangles.Sub(Rectangles.Add(a,delta),delta));
         var points=new[]{new Point(-7,4),new Point(3,-2),new Point(5,10)};var moved=UMapx.Imaging.Points.Add(points,delta);Assert.Equal(points,UMapx.Imaging.Points.Sub(moved,delta));
         Assert.Equal(new Rectangle(-7,-2,12,12),UMapx.Imaging.Points.GetRectangle(points));Assert.Equal(new Point(0,4),UMapx.Imaging.Points.GetMeanPoint(points));
-        foreach(double angle in new[]{0d,90d,180d,-90d}){var p=UMapx.Imaging.Points.Rotate(new Point(13,7),new Point(3,7),angle);Close(3+10*Math.Cos(angle*Math.PI/180),p.X,1,0);Close(7+10*Math.Sin(angle*Math.PI/180),p.Y,1,0);}
+        foreach(float angle in new[]{0d,90d,180d,-90d}){var p=UMapx.Imaging.Points.Rotate(new Point(13,7),new Point(3,7),angle);Close(3+10*Math.Cos(angle*Math.PI/180),p.X,1,0);Close(7+10*Math.Sin(angle*Math.PI/180),p.Y,1,0);}
         Assert.Equal(new Rectangle(5,-7,5,10),a.Clamp(new Rectangle(5,-10,5,13)));
         var ranges=new RangeInt(-3,5);var rangef=new RangeFloat(-.5f,1.5f);foreach(int x in Enumerable.Range(-10,21))Assert.Equal(x>=-3&&x<=5,ranges.IsOnRange(x));foreach(float x in new[]{-1f,-.5f,0f,1.5f,2f})Assert.Equal(x>=-.5f&&x<=1.5f,rangef.IsOnRange(x));
     }

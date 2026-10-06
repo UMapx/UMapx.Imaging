@@ -335,59 +335,38 @@ public class PhotographicFilterTests
         new CurvesCorrection().Apply(inPlace);
     }
 
-    public static IEnumerable<object[]> UnsupportedCases()
-    {
-        foreach (string name in Names)
-            foreach (PixelFormat format in new[] { PixelFormat.Format24bppRgb, PixelFormat.Format32bppRgb, PixelFormat.Format32bppPArgb, PixelFormat.Format8bppIndexed })
-                yield return new object[] { name, format };
-    }
-
     [Theory]
-    [MemberData(nameof(UnsupportedCases))]
-    public void UnsupportedFormatsAreRejectedByEveryOverload(string name, PixelFormat format)
+    [MemberData(nameof(IdentityCases))]
+    public void BitmapOverloadsUseTheExisting32BitLockConversion(string name)
     {
+        using var image = new Bitmap(7, 5, PixelFormat.Format24bppRgb);
+        for (int y = 0; y < image.Height; y++)
+            for (int x = 0; x < image.Width; x++)
+                image.SetPixel(x, y, Color.FromArgb(x * 31, y * 47, (x + y) * 23));
+        using var expected = image.To32bpp();
+        using var destination = new Bitmap(image.Width, image.Height, PixelFormat.Format24bppRgb);
         IBitmapFilter filter = Filter(name);
-        using var unsupported = new Bitmap(3, 2, format);
-        using var supported = new Bitmap(3, 2, PixelFormat.Format32bppArgb);
-        var invalidData = new BitmapData { Width = 3, Height = 2, PixelFormat = format };
-        using var validData = new Buffer32(3, 2);
-        Assert.Throws<NotSupportedException>(() => filter.Apply(unsupported));
-        Assert.Throws<NotSupportedException>(() => filter.Apply(invalidData));
+        filter.Apply(expected);
         if (filter is IBitmapFilter2 pair)
         {
-            Assert.Throws<NotSupportedException>(() => pair.Apply(supported, unsupported));
-            Assert.Throws<NotSupportedException>(() => pair.Apply(unsupported, supported));
-            Assert.Throws<NotSupportedException>(() => pair.Apply(validData.Data, invalidData));
-            Assert.Throws<NotSupportedException>(() => pair.Apply(invalidData, validData.Data));
+            pair.Apply(destination, image);
+            ImagingAuditTests.Same(expected, destination);
         }
+        filter.Apply(image);
+        ImagingAuditTests.Same(expected, image);
     }
 
     [Fact]
-    public void InvalidParametersAndMismatchedImagesFailWithoutLeavingBitmapLocked()
+    public void MismatchedImagesFailWithoutLeavingBitmapsLocked()
     {
-        Assert.Throws<ArgumentException>(() => new CurvesCorrection(new[] { new PointFloat(0, 0), new PointFloat(0, 1), new PointFloat(1, 1) }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new CurvesCorrection(new[] { new PointFloat(0, float.NaN), new PointFloat(1, 1) }));
-        Assert.Throws<ArgumentException>(() => new GradientMap(new[] { Color.Red }));
-        Assert.Throws<ArgumentException>(() => new GradientMap(new[] { Color.Red, Color.Blue }, new[] { 0f, 0.5f }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new GradientMap { Strength = float.NaN });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new RadialBlur(float.PositiveInfinity));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new RadialBlur { Center = new PointFloat(float.NaN, 0) });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new RadialBlur { Mode = (RadialBlurMode)9 });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new RadialBlur { Samples = 1 });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new LensBlur(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new LensBlur(1, 2));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new LensBlur { DepthMap = new[,] { { float.NaN } } });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Dehaze { MinimumTransmission = 0 });
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Dehaze { Epsilon = 0 });
         using var image = new Bitmap(3, 2, PixelFormat.Format32bppArgb);
-        var lens = new LensBlur { DepthMap = new float[1, 1] };
-        Assert.Throws<ArgumentException>(() => lens.Apply(image));
-        lens.DepthMap = null;
-        lens.Apply(image);
         using var other = new Bitmap(4, 2, PixelFormat.Format32bppArgb);
         foreach (IBitmapFilter2 filter in new IBitmapFilter2[] { new LensBlur(), new RadialBlur(), new Dehaze() })
+        {
             Assert.Throws<ArgumentException>(() => filter.Apply(image, other));
-        new GradientMap().Apply(image);
+            new GradientMap().Apply(image);
+            new GradientMap().Apply(other);
+        }
     }
 
     [Theory]

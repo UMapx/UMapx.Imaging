@@ -10,7 +10,7 @@ namespace UMapx.Imaging
     /// </summary>
     /// <remarks>
     /// Uses Rec.709 luminance weights on encoded RGB values and linear interpolation between stops.
-    /// Source alpha is preserved; gradient color alpha is ignored. Only Format32bppArgb is supported.
+    /// Source alpha is preserved; gradient color alpha is ignored. Pixel processing uses Format32bppArgb buffers.
     /// </remarks>
     [Serializable]
     public class GradientMap : Rebuilder, IBitmapFilter
@@ -57,8 +57,6 @@ namespace UMapx.Imaging
             get => (Color[])colors.Clone();
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
-                if (value.Length < 2) throw new ArgumentException("At least two colors are required", nameof(value));
                 colors = (Color[])value.Clone();
                 positions = new float[value.Length];
                 for (int i = 0; i < positions.Length; i++) positions[i] = i / (float)(positions.Length - 1);
@@ -75,15 +73,6 @@ namespace UMapx.Imaging
             get => (float[])positions.Clone();
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
-                if (value.Length != colors.Length || value[0] != 0 || value[value.Length - 1] != 1)
-                    throw new ArgumentException("Stop positions must match colors and include 0 and 1", nameof(value));
-                for (int i = 0; i < value.Length; i++)
-                {
-                    if (float.IsNaN(value[i]) || value[i] < 0 || value[i] > 1)
-                        throw new ArgumentOutOfRangeException(nameof(value));
-                    if (i > 0 && value[i] <= value[i - 1]) throw new ArgumentException("Stop positions must strictly increase", nameof(value));
-                }
                 positions = (float[])value.Clone();
                 rebuild = true;
             }
@@ -97,8 +86,6 @@ namespace UMapx.Imaging
             get => strength;
             set
             {
-                if (float.IsNaN(value) || value < 0 || value > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 strength = value;
             }
         }
@@ -136,12 +123,6 @@ namespace UMapx.Imaging
         /// <param name="Data">Bitmap.</param>
         public void Apply(Bitmap Data)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -162,12 +143,6 @@ namespace UMapx.Imaging
             static byte ToByte(double value) =>
                 value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
 
-            if (bmData == null) throw new ArgumentNullException(nameof(bmData));
-            if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmData.Width <= 0 || bmData.Height <= 0 || bmData.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmData.Stride) < (long)bmData.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmData));
             if (strength == 0) return;
             if (rebuild) { Rebuild(); rebuild = false; }
             byte* data = (byte*)bmData.Scan0;

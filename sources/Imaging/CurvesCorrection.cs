@@ -12,7 +12,7 @@ namespace UMapx.Imaging
     /// <remarks>
     /// Uses shape-preserving cubic interpolation. Coordinates are normalized to [0, 1].
     /// The master curve is applied before each channel curve. Alpha is preserved.
-    /// Only Format32bppArgb images and buffers are supported.
+    /// Pixel processing uses Format32bppArgb buffers.
     /// </remarks>
     [Serializable]
     public class CurvesCorrection : Rebuilder, IBitmapFilter
@@ -44,7 +44,7 @@ namespace UMapx.Imaging
         public PointFloat[] Points
         {
             get => (PointFloat[])points.Clone();
-            set { points = Validate(value); rebuild = true; }
+            set { points = (PointFloat[])value.Clone(); rebuild = true; }
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace UMapx.Imaging
         public PointFloat[] Red
         {
             get => (PointFloat[])red.Clone();
-            set { red = Validate(value); rebuild = true; }
+            set { red = (PointFloat[])value.Clone(); rebuild = true; }
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace UMapx.Imaging
         public PointFloat[] Green
         {
             get => (PointFloat[])green.Clone();
-            set { green = Validate(value); rebuild = true; }
+            set { green = (PointFloat[])value.Clone(); rebuild = true; }
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace UMapx.Imaging
         public PointFloat[] Blue
         {
             get => (PointFloat[])blue.Clone();
-            set { blue = Validate(value); rebuild = true; }
+            set { blue = (PointFloat[])value.Clone(); rebuild = true; }
         }
 
         /// <summary>
@@ -101,12 +101,6 @@ namespace UMapx.Imaging
         /// <param name="Data">Bitmap.</param>
         public void Apply(Bitmap Data)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -124,12 +118,6 @@ namespace UMapx.Imaging
         /// <param name="bmData">Bitmap data.</param>
         public unsafe void Apply(BitmapData bmData)
         {
-            if (bmData == null) throw new ArgumentNullException(nameof(bmData));
-            if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmData.Width <= 0 || bmData.Height <= 0 || bmData.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmData.Stride) < (long)bmData.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmData));
             if (rebuild) { Rebuild(); rebuild = false; }
             byte* data = (byte*)bmData.Scan0;
             Parallel.For(0, bmData.Height, y =>
@@ -145,23 +133,6 @@ namespace UMapx.Imaging
         private static PointFloat[] Identity()
         {
             return new[] { new PointFloat(0, 0), new PointFloat(1, 1) };
-        }
-
-        private static PointFloat[] Validate(PointFloat[] value)
-        {
-            if (value == null) throw new ArgumentNullException(nameof(value));
-            if (value.Length < 2 || value[0].X != 0 || value[value.Length - 1].X != 1)
-                throw new ArgumentException("Curves require at least two points and endpoints at X=0 and X=1", nameof(value));
-            for (int i = 0; i < value.Length; i++)
-            {
-                if (float.IsNaN(value[i].X) || value[i].X < 0 || value[i].X > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                if (float.IsNaN(value[i].Y) || value[i].Y < 0 || value[i].Y > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                if (i > 0 && value[i].X <= value[i - 1].X)
-                    throw new ArgumentException("Control point X coordinates must strictly increase", nameof(value));
-            }
-            return (PointFloat[])value.Clone();
         }
 
         // Weighted harmonic derivatives prevent overshoot on monotone curve segments (PCHIP).

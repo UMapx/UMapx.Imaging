@@ -10,7 +10,7 @@ namespace UMapx.Imaging
     /// </summary>
     /// <remarks>
     /// Uses a circular or regular polygon aperture and premultiplied-alpha averaging.
-    /// Borders use only available pixels. Alpha is blurred with color. Only Format32bppArgb is supported.
+    /// Borders use only available pixels. Alpha is blurred with color. Pixel processing uses Format32bppArgb buffers.
     /// Depth controls the destination pixel's radius; this is a gather approximation without occlusion reconstruction.
     /// </remarks>
     [Serializable]
@@ -40,7 +40,6 @@ namespace UMapx.Imaging
             get => radius;
             set
             {
-                if (value < 0 || value > 256) throw new ArgumentOutOfRangeException(nameof(value));
                 radius = value;
             }
         }
@@ -53,7 +52,6 @@ namespace UMapx.Imaging
             get => blades;
             set
             {
-                if (value != 0 && (value < 3 || value > 16)) throw new ArgumentOutOfRangeException(nameof(value));
                 blades = value;
             }
         }
@@ -66,8 +64,6 @@ namespace UMapx.Imaging
             get => rotation;
             set
             {
-                if (float.IsNaN(value) || value < 0 || value > 360)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 rotation = value;
             }
         }
@@ -81,8 +77,6 @@ namespace UMapx.Imaging
             get => focusDepth;
             set
             {
-                if (float.IsNaN(value) || value < 0 || value > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 focusDepth = value;
             }
         }
@@ -97,12 +91,6 @@ namespace UMapx.Imaging
             get => depthMap == null ? null : (float[,])depthMap.Clone();
             set
             {
-                if (value != null)
-                {
-                    foreach (float depth in value)
-                        if (float.IsNaN(depth) || depth < 0 || depth > 1)
-                            throw new ArgumentOutOfRangeException(nameof(value));
-                }
                 depthMap = value == null ? null : (float[,])value.Clone();
             }
         }
@@ -113,12 +101,6 @@ namespace UMapx.Imaging
         /// <param name="Data">Bitmap.</param>
         public void Apply(Bitmap Data)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -146,19 +128,6 @@ namespace UMapx.Imaging
         /// <param name="Src">Source bitmap of the same size.</param>
         public void Apply(Bitmap Data, Bitmap Src)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (Src == null) throw new ArgumentNullException(nameof(Src));
-            if (Src.Width <= 0 || Src.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Src));
-            if (Src.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (Data.Width != Src.Width || Data.Height != Src.Height)
-                throw new ArgumentException("Bitmap sizes must match");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -185,28 +154,14 @@ namespace UMapx.Imaging
         /// <param name="bmSrc">Source bitmap data.</param>
         public unsafe void Apply(BitmapData bmData, BitmapData bmSrc)
         {
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
-            if (bmData == null) throw new ArgumentNullException(nameof(bmData));
-            if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmData.Width <= 0 || bmData.Height <= 0 || bmData.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmData.Stride) < (long)bmData.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmData));
-            if (bmSrc == null) throw new ArgumentNullException(nameof(bmSrc));
-            if (bmSrc.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmSrc.Width <= 0 || bmSrc.Height <= 0 || bmSrc.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmSrc.Stride) < (long)bmSrc.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmSrc));
             if (bmData.Width != bmSrc.Width || bmData.Height != bmSrc.Height)
                 throw new ArgumentException("Bitmap sizes must match");
 
+            static byte ToByte(double value) =>
+                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
+
             int width = bmSrc.Width, height = bmSrc.Height;
             float[,] depth = depthMap;
-            if (depth != null && (depth.GetLength(0) != height || depth.GetLength(1) != width))
-                throw new ArgumentException("Depth map dimensions must match the bitmap", nameof(DepthMap));
             int rowBytes = checked(bmSrc.Width * 4);
             byte[] source = new byte[checked(rowBytes * bmSrc.Height)];
             byte* src = (byte*)bmSrc.Scan0.ToPointer();

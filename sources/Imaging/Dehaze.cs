@@ -11,7 +11,7 @@ namespace UMapx.Imaging
     /// <remarks>
     /// Based on He, Sun and Tang, Single Image Haze Removal Using Dark Channel Prior.
     /// Alpha is preserved; fully transparent pixels are excluded from atmospheric-light estimation.
-    /// Only Format32bppArgb is supported. Bright objects and skies can violate the dark channel prior;
+    /// Pixel processing uses Format32bppArgb buffers. Bright objects and skies can violate the dark channel prior;
     /// Strength and MinimumTransmission limit the correction in such scenes.
     /// </remarks>
     [Serializable]
@@ -41,7 +41,6 @@ namespace UMapx.Imaging
             get => radius;
             set
             {
-                if (value < 0 || value > 256) throw new ArgumentOutOfRangeException(nameof(value));
                 radius = value;
             }
         }
@@ -54,8 +53,6 @@ namespace UMapx.Imaging
             get => strength;
             set
             {
-                if (float.IsNaN(value) || value < 0 || value > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 strength = value;
             }
         }
@@ -68,8 +65,6 @@ namespace UMapx.Imaging
             get => minimumTransmission;
             set
             {
-                if (float.IsNaN(value) || value < 0.01f || value > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 minimumTransmission = value;
             }
         }
@@ -82,7 +77,6 @@ namespace UMapx.Imaging
             get => refinementRadius;
             set
             {
-                if (value < 0 || value > 256) throw new ArgumentOutOfRangeException(nameof(value));
                 refinementRadius = value;
             }
         }
@@ -95,8 +89,6 @@ namespace UMapx.Imaging
             get => epsilon;
             set
             {
-                if (float.IsNaN(value) || value < 0.000001f || value > 1)
-                    throw new ArgumentOutOfRangeException(nameof(value));
                 epsilon = value;
             }
         }
@@ -113,12 +105,6 @@ namespace UMapx.Imaging
         /// <param name="Data">Bitmap.</param>
         public void Apply(Bitmap Data)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -146,19 +132,6 @@ namespace UMapx.Imaging
         /// <param name="Src">Source bitmap of the same size.</param>
         public void Apply(Bitmap Data, Bitmap Src)
         {
-            if (Data == null) throw new ArgumentNullException(nameof(Data));
-            if (Data.Width <= 0 || Data.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Data));
-            if (Data.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (Src == null) throw new ArgumentNullException(nameof(Src));
-            if (Src.Width <= 0 || Src.Height <= 0)
-                throw new ArgumentException("Invalid bitmap dimensions", nameof(Src));
-            if (Src.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (Data.Width != Src.Width || Data.Height != Src.Height)
-                throw new ArgumentException("Bitmap sizes must match");
-
             BitmapData bmData = BitmapFormat.Lock32bpp(Data);
             try
             {
@@ -185,23 +158,12 @@ namespace UMapx.Imaging
         /// <param name="bmSrc">Source bitmap data.</param>
         public unsafe void Apply(BitmapData bmData, BitmapData bmSrc)
         {
+            if (bmData.Width != bmSrc.Width || bmData.Height != bmSrc.Height)
+                throw new ArgumentException("Bitmap sizes must match");
+
             static byte ToByte(double value) =>
                 value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
 
-            if (bmData == null) throw new ArgumentNullException(nameof(bmData));
-            if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmData.Width <= 0 || bmData.Height <= 0 || bmData.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmData.Stride) < (long)bmData.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmData));
-            if (bmSrc == null) throw new ArgumentNullException(nameof(bmSrc));
-            if (bmSrc.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
-            if (bmSrc.Width <= 0 || bmSrc.Height <= 0 || bmSrc.Scan0 == IntPtr.Zero ||
-                Math.Abs((long)bmSrc.Stride) < (long)bmSrc.Width * 4)
-                throw new ArgumentException("Invalid bitmap buffer", nameof(bmSrc));
-            if (bmData.Width != bmSrc.Width || bmData.Height != bmSrc.Height)
-                throw new ArgumentException("Bitmap sizes must match");
 
             int rowBytes = checked(bmSrc.Width * 4);
             byte[] source = new byte[checked(rowBytes * bmSrc.Height)];

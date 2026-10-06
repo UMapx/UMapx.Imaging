@@ -79,19 +79,16 @@ namespace UMapx.Imaging
         /// </summary>
         protected override void Rebuild()
         {
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
             var curves = new[] { blue, green, red };
             var masterSlopes = Slopes(points);
             tables = new byte[3][];
             for (int c = 0; c < 3; c++)
             {
                 tables[c] = new byte[256];
-                double[] slopes = Slopes(curves[c]);
+                float[] slopes = Slopes(curves[c]);
                 for (int i = 0; i < 256; i++)
-                    tables[c][i] = ToByte(255 * Evaluate(curves[c], slopes,
-                        Evaluate(points, masterSlopes, i / 255.0)));
+                    tables[c][i] = Maths.Byte(Evaluate(curves[c], slopes,
+                        Evaluate(points, masterSlopes, i)));
             }
         }
 
@@ -139,16 +136,16 @@ namespace UMapx.Imaging
         }
 
         // Weighted harmonic derivatives prevent overshoot on monotone curve segments (PCHIP).
-        private static double[] Slopes(PointFloat[] curve)
+        private static float[] Slopes(PointFloat[] curve)
         {
             int n = curve.Length;
-            var h = new double[n - 1];
-            var d = new double[n - 1];
-            var m = new double[n];
+            var h = new float[n - 1];
+            var d = new float[n - 1];
+            var m = new float[n];
             for (int i = 0; i < n - 1; i++)
             {
-                h[i] = (double)curve[i + 1].X - curve[i].X;
-                d[i] = ((double)curve[i + 1].Y - curve[i].Y) / h[i];
+                h[i] = curve[i + 1].X - curve[i].X;
+                d[i] = (curve[i + 1].Y - curve[i].Y) / h[i];
             }
             if (n == 2) { m[0] = m[1] = d[0]; return m; }
             m[0] = Endpoint(h[0], h[1], d[0], d[1]);
@@ -156,29 +153,30 @@ namespace UMapx.Imaging
             for (int i = 1; i < n - 1; i++)
             {
                 if (d[i - 1] * d[i] <= 0) continue;
-                double w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1];
+                float w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1];
                 m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
             }
             return m;
         }
 
-        private static double Endpoint(double h0, double h1, double d0, double d1)
+        private static float Endpoint(float h0, float h1, float d0, float d1)
         {
-            double m = ((2 * h0 + h1) * d0 - h0 * d1) / (h0 + h1);
+            float m = ((2 * h0 + h1) * d0 - h0 * d1) / (h0 + h1);
             if (m * d0 <= 0) return 0;
             return d0 * d1 <= 0 && Math.Abs(m) > 3 * Math.Abs(d0) ? 3 * d0 : m;
         }
 
-        private static double Evaluate(PointFloat[] curve, double[] slopes, double x)
+        private static float Evaluate(PointFloat[] curve, float[] slopes, float x)
         {
             int i = 0;
-            while (i < curve.Length - 2 && x > curve[i + 1].X) i++;
-            double h = (double)curve[i + 1].X - curve[i].X;
-            double t = Math.Max(0, Math.Min(1, (x - curve[i].X) / h));
-            double t2 = t * t, t3 = t2 * t;
-            double result = (2 * t3 - 3 * t2 + 1) * curve[i].Y + (t3 - 2 * t2 + t) * h * slopes[i]
-                + (-2 * t3 + 3 * t2) * curve[i + 1].Y + (t3 - t2) * h * slopes[i + 1];
-            return Math.Max(0, Math.Min(1, result));
+            while (i < curve.Length - 2 && x > curve[i + 1].X * 255) i++;
+            float x0 = curve[i].X * 255, h = curve[i + 1].X * 255 - x0;
+            float y0 = curve[i].Y * 255, delta = curve[i + 1].Y * 255 - y0;
+            float t = Math.Max(0, Math.Min(1, (x - x0) / h));
+            // Evaluate Hermite interpolation in byte coordinates, preserving linear curves and endpoints.
+            float result = y0 + t * delta + t * (1 - t) *
+                ((1 - t) * (h * slopes[i] - delta) + t * (delta - h * slopes[i + 1]));
+            return Math.Max(0, Math.Min(255, result));
         }
         #endregion
     }

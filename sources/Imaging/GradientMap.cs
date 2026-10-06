@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using UMapx.Core;
 
 namespace UMapx.Imaging
 {
@@ -100,20 +101,17 @@ namespace UMapx.Imaging
         /// </summary>
         protected override void Rebuild()
         {
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
             tables = new[] { new byte[256], new byte[256], new byte[256] };
             int stop = 0;
             for (int i = 0; i < 256; i++)
             {
-                double x = i / 255.0;
+                float x = i / 255f;
                 while (stop < colors.Length - 2 && x > positions[stop + 1]) stop++;
-                double t = (x - positions[stop]) / ((double)positions[stop + 1] - positions[stop]);
+                float t = (x - positions[stop]) / (positions[stop + 1] - positions[stop]);
                 Color a = colors[stop], b = colors[stop + 1];
-                tables[0][i] = ToByte(a.B + t * (b.B - a.B));
-                tables[1][i] = ToByte(a.G + t * (b.G - a.G));
-                tables[2][i] = ToByte(a.R + t * (b.R - a.R));
+                tables[0][i] = Maths.Byte(a.B + t * (b.B - a.B));
+                tables[1][i] = Maths.Byte(a.G + t * (b.G - a.G));
+                tables[2][i] = Maths.Byte(a.R + t * (b.R - a.R));
             }
         }
 
@@ -143,9 +141,6 @@ namespace UMapx.Imaging
             if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
 
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
             if (strength == 0) return;
             if (rebuild) { Rebuild(); rebuild = false; }
             byte* data = (byte*)bmData.Scan0;
@@ -154,9 +149,9 @@ namespace UMapx.Imaging
                 byte* row = data + (long)y * bmData.Stride;
                 for (int x = 0; x < bmData.Width; x++, row += 4)
                 {
-                    int index = ToByte(0.0722 * row[0] + 0.7152 * row[1] + 0.2126 * row[2]);
+                    int index = Maths.Byte(0.0722f * row[0] + 0.7152f * row[1] + 0.2126f * row[2]);
                     if (Inverted) index = 255 - index;
-                    for (int c = 0; c < 3; c++) row[c] = ToByte(row[c] + strength * (tables[c][index] - row[c]));
+                    for (int c = 0; c < 3; c++) row[c] = Maths.Byte(row[c] + strength * (tables[c][index] - row[c]));
                 }
             });
         }

@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using UMapx.Core;
 
 namespace UMapx.Imaging
 {
@@ -160,9 +161,6 @@ namespace UMapx.Imaging
             if (bmData.PixelFormat != PixelFormat.Format32bppArgb || bmSrc.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
 
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
             int width = bmSrc.Width, height = bmSrc.Height;
             float[,] depth = depthMap;
             int rowBytes = checked(bmSrc.Width * 4);
@@ -198,17 +196,17 @@ namespace UMapx.Imaging
 
             // Row prefix sums turn each aperture row into one constant-time interval query.
             int pitch = checked(width + 1), length = checked(pitch * height);
-            var blue = new double[length];
-            var green = new double[length];
-            var red = new double[length];
-            var alpha = new double[length];
+            var blue = new float[length];
+            var green = new float[length];
+            var red = new float[length];
+            var alpha = new float[length];
             Parallel.For(0, height, y =>
             {
                 int row = y * pitch;
                 for (int x = 0; x < width; x++)
                 {
                     int k = (y * width + x) * 4, i = row + x;
-                    double a = source[k + 3];
+                    float a = source[k + 3];
                     blue[i + 1] = blue[i] + source[k] * a;
                     green[i + 1] = green[i] + source[k + 1] * a;
                     red[i + 1] = red[i] + source[k + 2] * a;
@@ -224,7 +222,7 @@ namespace UMapx.Imaging
                     int r = radii[y * width + x];
                     if (r == 0) continue;
                     int[] span = spans[r];
-                    double b = 0, g = 0, redSum = 0, a = 0;
+                    float b = 0, g = 0, redSum = 0, a = 0;
                     int count = 0;
                     for (int dy = Math.Max(-r, -y); dy <= Math.Min(r, height - 1 - y); dy++)
                     {
@@ -238,10 +236,10 @@ namespace UMapx.Imaging
                         count += right - left + 1;
                     }
                     int k = (y * width + x) * 4;
-                    output[k] = a > 0 ? ToByte(b / a) : (byte)0;
-                    output[k + 1] = a > 0 ? ToByte(g / a) : (byte)0;
-                    output[k + 2] = a > 0 ? ToByte(redSum / a) : (byte)0;
-                    output[k + 3] = ToByte(a / count);
+                    output[k] = a > 0 ? Maths.Byte(b / a) : (byte)0;
+                    output[k + 1] = a > 0 ? Maths.Byte(g / a) : (byte)0;
+                    output[k + 2] = a > 0 ? Maths.Byte(redSum / a) : (byte)0;
+                    output[k + 3] = Maths.Byte(a / count);
                 }
             });
             fixed (byte* pixels = output)
@@ -256,21 +254,21 @@ namespace UMapx.Imaging
         private int[] Aperture(int r)
         {
             var spans = new int[(2 * r + 1) * 2];
-            var nx = new double[blades];
-            var ny = new double[blades];
+            var nx = new float[blades];
+            var ny = new float[blades];
             for (int i = 0; i < blades; i++)
             {
-                double angle = rotation * Math.PI / 180 + (2 * i + 1) * Math.PI / blades;
-                nx[i] = Math.Cos(angle); ny[i] = Math.Sin(angle);
+                float angle = rotation * Maths.Pi / 180 + (2 * i + 1) * Maths.Pi / blades;
+                nx[i] = Maths.Cos(angle); ny[i] = Maths.Sin(angle);
             }
-            double limit = blades == 0 ? r : r * Math.Cos(Math.PI / blades);
+            float limit = blades == 0 ? r : r * Maths.Cos(Maths.Pi / blades);
             for (int y = -r; y <= r; y++)
             {
                 int left = r + 1, right = -r - 1;
                 for (int x = -r; x <= r; x++)
                 {
                     bool inside = x * x + y * y <= r * r;
-                    for (int i = 0; inside && i < blades; i++) inside = x * nx[i] + y * ny[i] <= limit + 1e-9;
+                    for (int i = 0; inside && i < blades; i++) inside = x * nx[i] + y * ny[i] <= limit + r * 1e-6f;
                     if (inside) { left = Math.Min(left, x); right = x; }
                 }
                 int index = (y + r) * 2;

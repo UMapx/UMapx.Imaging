@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
+using UMapx.Core;
 
 namespace UMapx.Imaging
 {
@@ -164,10 +165,6 @@ namespace UMapx.Imaging
             if (bmData.PixelFormat != PixelFormat.Format32bppArgb || bmSrc.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
 
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
-
             int rowBytes = checked(bmSrc.Width * 4);
             byte[] source = new byte[checked(rowBytes * bmSrc.Height)];
             byte* src = (byte*)bmSrc.Scan0.ToPointer();
@@ -226,10 +223,10 @@ namespace UMapx.Imaging
                 {
                     int i = y * width + x, k = i * 4;
                     if (source[k + 3] == 0) continue;
-                    double t = Math.Max(minimumTransmission, Math.Min(1, transmission[i]));
-                    output[k] = ToByte((source[k] - ab) / t + ab);
-                    output[k + 1] = ToByte((source[k + 1] - ag) / t + ag);
-                    output[k + 2] = ToByte((source[k + 2] - ar) / t + ar);
+                    float t = Math.Max(minimumTransmission, Math.Min(1, transmission[i]));
+                    output[k] = Maths.Byte((source[k] - ab) / t + ab);
+                    output[k + 1] = Maths.Byte((source[k + 1] - ag) / t + ag);
+                    output[k + 2] = Maths.Byte((source[k + 2] - ar) / t + ar);
                 }
             });
             fixed (byte* pixels = output)
@@ -246,7 +243,7 @@ namespace UMapx.Imaging
             var histogram = new int[256];
             for (int i = 0; i < dark.Length; i++)
                 if (source[i * 4 + 3] != 0) histogram[(int)dark[i]]++;
-            int threshold = 255, selected = histogram[255], target = Math.Max(1, (int)Math.Ceiling(visible * 0.001));
+            int threshold = 255, selected = histogram[255], target = Math.Max(1, (int)Maths.Ceil(visible * 0.001f));
             while (threshold > 0 && selected < target) selected += histogram[--threshold];
             int best = -1, brightest = -1;
             for (int i = 0; i < dark.Length; i++)
@@ -302,8 +299,8 @@ namespace UMapx.Imaging
             float[] corrIp = Mean(ip, width, height, refinementRadius);
             for (int i = 0; i < guide.Length; i++)
             {
-                double variance = Math.Max(0, corrI[i] - (double)meanI[i] * meanI[i]);
-                ii[i] = (float)((corrIp[i] - (double)meanI[i] * meanP[i]) / (variance + epsilon));
+                float variance = Math.Max(0, corrI[i] - meanI[i] * meanI[i]);
+                ii[i] = (corrIp[i] - meanI[i] * meanP[i]) / (variance + epsilon);
                 ip[i] = meanP[i] - ii[i] * meanI[i];
             }
             float[] meanA = Mean(ii, width, height, refinementRadius);
@@ -325,13 +322,13 @@ namespace UMapx.Imaging
                 Parallel.For(0, lines, line =>
                 {
                     int start = horizontal ? line * width : line, left = 0, right = -1;
-                    double sum = 0;
+                    float sum = 0;
                     for (int x = 0; x < length; x++)
                     {
                         int end = Math.Min(length - 1, x + radius), begin = Math.Max(0, x - radius);
                         while (right < end) sum += source[start + ++right * step];
                         while (left < begin) sum -= source[start + left++ * step];
-                        target[start + x * step] = (float)(sum / (end - begin + 1));
+                        target[start + x * step] = sum / (end - begin + 1);
                     }
                 });
             }

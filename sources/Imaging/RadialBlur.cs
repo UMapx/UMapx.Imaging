@@ -149,9 +149,6 @@ namespace UMapx.Imaging
             if (bmData.PixelFormat != PixelFormat.Format32bppArgb || bmSrc.PixelFormat != PixelFormat.Format32bppArgb)
                 throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
 
-            static byte ToByte(double value) =>
-                value <= 0 ? (byte)0 : value >= 255 ? (byte)255 : (byte)(value + 0.5);
-
             int rowBytes = checked(bmSrc.Width * 4);
             byte[] source = new byte[checked(rowBytes * bmSrc.Height)];
             byte* src = (byte*)bmSrc.Scan0.ToPointer();
@@ -171,15 +168,15 @@ namespace UMapx.Imaging
                 return;
             }
             int width = bmSrc.Width, height = bmSrc.Height;
-            double cx = center.X * (width - 1.0), cy = center.Y * (height - 1.0);
-            var cos = new double[samples];
-            var sin = new double[samples];
-            var scale = new double[samples];
+            float cx = center.X * (width - 1), cy = center.Y * (height - 1);
+            var cos = new float[samples];
+            var sin = new float[samples];
+            var scale = new float[samples];
             for (int i = 0; i < samples; i++)
             {
-                double t = i / (samples - 1.0);
-                double angle = (t - 0.5) * amount * Math.PI / 180;
-                cos[i] = Math.Cos(angle); sin[i] = Math.Sin(angle);
+                float t = i / (samples - 1f);
+                float angle = (t - 0.5f) * amount * Maths.Pi / 180;
+                cos[i] = Maths.Cos(angle); sin[i] = Maths.Sin(angle);
                 scale[i] = 1 - t * amount / 100;
             }
             byte[] output = (byte[])source.Clone();
@@ -187,20 +184,20 @@ namespace UMapx.Imaging
             {
                 for (int x = 0; x < width; x++)
                 {
-                    double dx = x - cx, dy = y - cy;
+                    float dx = x - cx, dy = y - cy;
                     if (dx == 0 && dy == 0) continue;
-                    double b = 0, g = 0, r = 0, a = 0;
+                    float b = 0, g = 0, r = 0, a = 0;
                     for (int i = 0; i < samples; i++)
                     {
-                        double sx = mode == RadialBlurMode.Spin ? cx + dx * cos[i] - dy * sin[i] : cx + dx * scale[i];
-                        double sy = mode == RadialBlurMode.Spin ? cy + dx * sin[i] + dy * cos[i] : cy + dy * scale[i];
+                        float sx = mode == RadialBlurMode.Spin ? cx + dx * cos[i] - dy * sin[i] : cx + dx * scale[i];
+                        float sy = mode == RadialBlurMode.Spin ? cy + dx * sin[i] + dy * cos[i] : cy + dy * scale[i];
                         Sample(source, width, height, sx, sy, ref b, ref g, ref r, ref a);
                     }
                     int k = (y * width + x) * 4;
-                    output[k] = a > 0 ? ToByte(b / a) : (byte)0;
-                    output[k + 1] = a > 0 ? ToByte(g / a) : (byte)0;
-                    output[k + 2] = a > 0 ? ToByte(r / a) : (byte)0;
-                    output[k + 3] = ToByte(a / samples);
+                    output[k] = a > 0 ? Maths.Byte(b / a) : (byte)0;
+                    output[k + 1] = a > 0 ? Maths.Byte(g / a) : (byte)0;
+                    output[k + 2] = a > 0 ? Maths.Byte(r / a) : (byte)0;
+                    output[k + 3] = Maths.Byte(a / samples);
                 }
             });
             fixed (byte* pixels = output)
@@ -213,28 +210,35 @@ namespace UMapx.Imaging
 
         #region Private voids
         // Accumulates a bilinear sample in premultiplied-alpha space, with replicated borders.
-        private static void Sample(byte[] pixels, int width, int height, double x, double y,
-            ref double blue, ref double green, ref double red, ref double alpha)
+        private static void Sample(byte[] pixels, int width, int height, float x, float y,
+            ref float blue, ref float green, ref float red, ref float alpha)
         {
             x = Math.Max(0, Math.Min(width - 1, x));
             y = Math.Max(0, Math.Min(height - 1, y));
             int x0 = (int)x, y0 = (int)y;
             int x1 = Math.Min(x0 + 1, width - 1), y1 = Math.Min(y0 + 1, height - 1);
-            double fx = x - x0, fy = y - y0;
-            Accumulate(pixels, (y0 * width + x0) * 4, (1 - fx) * (1 - fy), ref blue, ref green, ref red, ref alpha);
-            Accumulate(pixels, (y0 * width + x1) * 4, fx * (1 - fy), ref blue, ref green, ref red, ref alpha);
-            Accumulate(pixels, (y1 * width + x0) * 4, (1 - fx) * fy, ref blue, ref green, ref red, ref alpha);
-            Accumulate(pixels, (y1 * width + x1) * 4, fx * fy, ref blue, ref green, ref red, ref alpha);
-        }
-
-        private static void Accumulate(byte[] pixels, int index, double weight,
-            ref double blue, ref double green, ref double red, ref double alpha)
-        {
-            double a = pixels[index + 3] * weight;
-            blue += pixels[index] * a;
-            green += pixels[index + 1] * a;
-            red += pixels[index + 2] * a;
-            alpha += a;
+            float fx = x - x0, fy = y - y0;
+            int i00 = (y0 * width + x0) * 4, i10 = (y0 * width + x1) * 4;
+            int i01 = (y1 * width + x0) * 4, i11 = (y1 * width + x1) * 4;
+            for (int c = 0; c < 4; c++)
+            {
+                float v00 = pixels[i00 + c], v10 = pixels[i10 + c];
+                float v01 = pixels[i01 + c], v11 = pixels[i11 + c];
+                if (c < 3)
+                {
+                    v00 *= pixels[i00 + 3]; v10 *= pixels[i10 + 3];
+                    v01 *= pixels[i01 + 3]; v11 *= pixels[i11 + 3];
+                }
+                float top = v00 + fx * (v10 - v00), bottom = v01 + fx * (v11 - v01);
+                float value = top + fy * (bottom - top);
+                switch (c)
+                {
+                    case 0: blue += value; break;
+                    case 1: green += value; break;
+                    case 2: red += value; break;
+                    case 3: alpha += value; break;
+                }
+            }
         }
         #endregion
     }

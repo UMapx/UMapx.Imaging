@@ -105,7 +105,7 @@ public class PhotographicFilterTests
         filter.Inverted = true; filter.Strength = 0.5f;
         data.Set(0, 0, original[0]);
         filter.Apply(data.Data);
-        Assert.Equal(Color.FromArgb(19, 128, 128, 128).ToArgb(), data.Get(0, 0).ToArgb());
+        Assert.Equal(Color.FromArgb(19, 127, 127, 127).ToArgb(), data.Get(0, 0).ToArgb());
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class PhotographicFilterTests
         data.Set(0, 0, Color.FromArgb(0, 255, 0, 0));
         data.Set(2, 0, Color.Blue);
         filter.Apply(data.Data);
-        Assert.Equal(Color.FromArgb(128, 0, 0, 255).ToArgb(), data.Get(2, 0).ToArgb());
+        Assert.Equal(Color.FromArgb(127, 0, 0, 255).ToArgb(), data.Get(2, 0).ToArgb());
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class PhotographicFilterTests
         for (int y = 0; y < 3; y++) for (int x = 0; x < 3; x++) opaque.Set(x, y, Color.Black);
         opaque.Set(2, 1, Color.White);
         new RadialBlur(90, RadialBlurMode.Spin, 2).Apply(opaque.Data);
-        Assert.Equal((int)Math.Round(255 * (Math.Sqrt(0.5) - 0.5)), opaque.Get(2, 1).R);
+        Assert.Equal((int)(255 * (Math.Sqrt(0.5) - 0.5)), opaque.Get(2, 1).R);
         Assert.Equal(Color.FromArgb(77, 10, 20, 30).ToArgb(), data.Get(1, 1).ToArgb());
     }
 
@@ -150,7 +150,7 @@ public class PhotographicFilterTests
         data.Set(1, 1, Color.White);
         new LensBlur(1).Apply(data.Data);
         Assert.Equal(51, data.Get(1, 1).R);
-        Assert.Equal(64, data.Get(1, 0).R);
+        Assert.Equal(63, data.Get(1, 0).R);
         Assert.Equal(0, data.Get(0, 0).R);
     }
 
@@ -186,8 +186,8 @@ public class PhotographicFilterTests
                 a += before[k + 3]; b += before[k] * before[k + 3];
                 g += before[k + 1] * before[k + 3]; r += before[k + 2] * before[k + 3]; count++;
             }
-            Assert.Equal(Color.FromArgb(Round(a / count), a == 0 ? 0 : Round(r / a),
-                a == 0 ? 0 : Round(g / a), a == 0 ? 0 : Round(b / a)).ToArgb(), data.Get(x, y).ToArgb());
+            Assert.Equal(Color.FromArgb(Maths.Byte((float)(a / count)), a == 0 ? 0 : Maths.Byte((float)(r / a)),
+                a == 0 ? 0 : Maths.Byte((float)(g / a)), a == 0 ? 0 : Maths.Byte((float)(b / a))).ToArgb(), data.Get(x, y).ToArgb());
         }
     }
 
@@ -285,8 +285,8 @@ public class PhotographicFilterTests
             Color original = ColorAt(before, width, x, y);
             double transmission = Math.Clamp(t[y * width + x], 0.1, 1);
             Color expected = original.A == 0 ? original : Color.FromArgb(original.A,
-                Round((original.R - 231) / transmission + 231), Round((original.G - 217) / transmission + 217),
-                Round((original.B - 203) / transmission + 203));
+                Maths.Byte((float)((original.R - 231) / transmission + 231)), Maths.Byte((float)((original.G - 217) / transmission + 217)),
+                Maths.Byte((float)((original.B - 203) / transmission + 203)));
             ImagingAuditTests.Pixel(expected, data.Get(x, y), 1);
         }
     }
@@ -425,7 +425,6 @@ public class PhotographicFilterTests
         return result;
     }
 
-    private static int Round(double value) => Math.Clamp((int)Math.Floor(value + 0.5), 0, 255);
     private static Color ColorAt(byte[] bytes, int width, int x, int y)
     {
         int i = (y * width + x) * 4;

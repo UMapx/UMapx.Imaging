@@ -243,7 +243,7 @@ namespace UMapx.Imaging
             var histogram = new int[256];
             for (int i = 0; i < dark.Length; i++)
                 if (source[i * 4 + 3] != 0) histogram[(int)dark[i]]++;
-            int threshold = 255, selected = histogram[255], target = Math.Max(1, (int)Maths.Ceil(visible * 0.001f));
+            int threshold = 255, selected = histogram[255], target = (visible + 999) / 1000;
             while (threshold > 0 && selected < target) selected += histogram[--threshold];
             int best = -1, brightest = -1;
             for (int i = 0; i < dark.Length; i++)

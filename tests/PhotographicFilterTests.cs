@@ -221,6 +221,166 @@ public class PhotographicFilterTests
     }
 
     [Fact]
+    public void LensBlurKeepsSmallLocalValuesAfterABrightWidePrefix()
+    {
+        using var data = new Buffer32(8192, 1, 12, true);
+        for (int x = 0; x < data.Data.Width; x++) data.Set(x, 0, Color.White);
+        Color tail = Color.FromArgb(1, 37, 23, 11);
+        for (int x = 8150; x < data.Data.Width; x++) data.Set(x, 0, tail);
+        new LensBlur(3).Apply(data.Data);
+        for (int x = 8160; x < data.Data.Width; x++)
+            Assert.Equal(tail.ToArgb(), data.Get(x, 0).ToArgb());
+        data.AssertGuards();
+    }
+
+    [Theory]
+    [InlineData(1, 0)]
+    [InlineData(256, 6)]
+    public void LensBlurPreservesUniformWideImages(int radius, int blades)
+    {
+        using var data = new Buffer32(8192, 3);
+        Color constant = Color.FromArgb(219, 241, 197, 61);
+        for (int y = 0; y < data.Data.Height; y++)
+            for (int x = 0; x < data.Data.Width; x++) data.Set(x, y, constant);
+        new LensBlur(radius, blades).Apply(data.Data);
+        for (int y = 0; y < data.Data.Height; y++)
+            for (int x = 0; x < data.Data.Width; x++)
+                Assert.Equal(constant.ToArgb(), data.Get(x, y).ToArgb());
+    }
+
+    [Theory]
+    [InlineData(RadialBlurMode.Spin)]
+    [InlineData(RadialBlurMode.Zoom)]
+    public void RadialBlurPreservesConstantColorAtTheMaximumSampleCount(RadialBlurMode mode)
+    {
+        using var data = new Buffer32(9, 7, 8, true);
+        Color constant = Color.FromArgb(219, 241, 197, 61);
+        for (int y = 0; y < data.Data.Height; y++)
+            for (int x = 0; x < data.Data.Width; x++) data.Set(x, y, constant);
+        new RadialBlur(100, mode, 4096).Apply(data.Data);
+        for (int y = 0; y < data.Data.Height; y++)
+            for (int x = 0; x < data.Data.Width; x++)
+                Assert.Equal(constant.ToArgb(), data.Get(x, y).ToArgb());
+        data.AssertGuards();
+    }
+
+    [Fact]
+    public void DefaultGradientPreservesEveryNeutralGray()
+    {
+        using var data = new Buffer32(256, 1);
+        for (int x = 0; x < 256; x++) data.Set(x, 0, Color.FromArgb(x, x, x, x));
+        byte[] before = data.Packed();
+        new GradientMap().Apply(data.Data);
+        Assert.Equal(before, data.Packed());
+    }
+
+    [Fact]
+    public void DehazeUsesExactlyTheTopPointOnePercentAtIntegerBoundaries()
+    {
+        using var data = new Buffer32(3000, 1);
+        for (int x = 0; x < 3000; x++) data.Set(x, 0, Color.Black);
+        for (int x = 0; x < 3; x++) data.Set(x, 0, Color.FromArgb(100, 100, 100));
+        data.Set(3, 0, Color.FromArgb(255, 255, 99));
+        data.Set(4, 0, Color.FromArgb(50, 50, 50));
+        new Dehaze(0, 1) { RefinementRadius = 0 }.Apply(data.Data);
+        Assert.Equal(Color.Black.ToArgb(), data.Get(4, 0).ToArgb());
+    }
+
+    [Theory]
+    [InlineData(5, 257, 3)]
+    [InlineData(32, 517, 5)]
+    [InlineData(256, 517, 1)]
+    public void CircularLensBlurMatchesDirectConvolutionAcrossPrefixBlocks(int radius, int width, int height)
+    {
+        using var data = new Buffer32(width, height, 12, true);
+        byte[] before = data.Packed();
+        new LensBlur(radius).Apply(data.Data);
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++)
+        {
+            double b = 0, g = 0, r = 0, a = 0;
+            int count = 0;
+            for (int sy = Math.Max(0, y - radius); sy <= Math.Min(height - 1, y + radius); sy++)
+                for (int sx = Math.Max(0, x - radius); sx <= Math.Min(width - 1, x + radius); sx++)
+                {
+                    int dx = sx - x, dy = sy - y;
+                    if (dx * dx + dy * dy > radius * radius) continue;
+                    int k = (sy * width + sx) * 4;
+                    a += before[k + 3]; b += before[k] * before[k + 3];
+                    g += before[k + 1] * before[k + 3]; r += before[k + 2] * before[k + 3]; count++;
+                }
+            Color expected = Color.FromArgb(Maths.Byte((float)(a / count)),
+                a == 0 ? 0 : Maths.Byte((float)(r / a)), a == 0 ? 0 : Maths.Byte((float)(g / a)),
+                a == 0 ? 0 : Maths.Byte((float)(b / a)));
+            ImagingAuditTests.Pixel(expected, data.Get(x, y), 1);
+        }
+        data.AssertGuards();
+    }
+
+    [Theory]
+    [InlineData(RadialBlurMode.Spin, 17)]
+    [InlineData(RadialBlurMode.Zoom, 17)]
+    [InlineData(RadialBlurMode.Spin, 4096)]
+    [InlineData(RadialBlurMode.Zoom, 4096)]
+    public void RadialBlurMatchesDirectPremultipliedBilinearReference(RadialBlurMode mode, int samples)
+    {
+        const int width = 11, height = 7;
+        using var data = new Buffer32(width, height, 8, true);
+        byte[] before = data.Packed();
+        var center = new PointFloat(0, 0.7f);
+        new RadialBlur(100, mode, samples) { Center = center }.Apply(data.Data);
+        double cx = center.X * (width - 1.0), cy = center.Y * (height - 1.0);
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++)
+        {
+            double b = 0, g = 0, r = 0, a = 0;
+            for (int i = 0; i < samples; i++)
+            {
+                double t = i / (samples - 1.0), angle = (t - 0.5) * 100 * Math.PI / 180;
+                double dx = x - cx, dy = y - cy;
+                double sx = mode == RadialBlurMode.Spin ? cx + dx * Math.Cos(angle) - dy * Math.Sin(angle) : cx + dx * (1 - t);
+                double sy = mode == RadialBlurMode.Spin ? cy + dx * Math.Sin(angle) + dy * Math.Cos(angle) : cy + dy * (1 - t);
+                sx = Math.Clamp(sx, 0, width - 1); sy = Math.Clamp(sy, 0, height - 1);
+                int x0 = (int)sx, y0 = (int)sy;
+                int x1 = Math.Min(x0 + 1, width - 1), y1 = Math.Min(y0 + 1, height - 1);
+                double fx = sx - x0, fy = sy - y0;
+                void Add(int px, int py, double weight)
+                {
+                    int k = (py * width + px) * 4;
+                    double alpha = before[k + 3] * weight;
+                    a += alpha; b += before[k] * alpha; g += before[k + 1] * alpha; r += before[k + 2] * alpha;
+                }
+                Add(x0, y0, (1 - fx) * (1 - fy)); Add(x1, y0, fx * (1 - fy));
+                Add(x0, y1, (1 - fx) * fy); Add(x1, y1, fx * fy);
+            }
+            Color expected = Color.FromArgb(Maths.Byte((float)(a / samples)),
+                a == 0 ? 0 : Maths.Byte((float)(r / a)), a == 0 ? 0 : Maths.Byte((float)(g / a)),
+                a == 0 ? 0 : Maths.Byte((float)(b / a)));
+            ImagingAuditTests.Pixel(expected, data.Get(x, y), 1);
+        }
+        data.AssertGuards();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CurvesMatchAnalyticThreePointHermitePolynomials(bool valley)
+    {
+        var points = valley ? new[] { new PointFloat(0, 0.75f), new PointFloat(0.5f, 0.25f), new PointFloat(1, 0.75f) }
+            : new[] { new PointFloat(0, 0), new PointFloat(0.5f, 0.25f), new PointFloat(1, 1) };
+        using var data = new Buffer32(256, 1);
+        for (int x = 0; x < 256; x++) data.Set(x, 0, Color.FromArgb(x, x, x, x));
+        new CurvesCorrection(points).Apply(data.Data);
+        for (int x = 0; x < 256; x++)
+        {
+            double t = x < 128 ? 2 * x / 255.0 : 2 * x / 255.0 - 1;
+            double expected = valley ? (x < 128 ? 0.75 - t + 0.5 * t * t : 0.25 + 0.5 * t * t)
+                : (x < 128 ? 0.375 * t * t - 0.125 * t * t * t : 0.25 + 0.375 * t + 0.5 * t * t - 0.125 * t * t * t);
+            int value = Maths.Byte((float)(255 * expected));
+            ImagingAuditTests.Pixel(Color.FromArgb(x, value, value, value), data.Get(x, 0), 1);
+            Assert.Equal(x, data.Get(x, 0).A);
+        }
+    }
+
+    [Fact]
     public void DehazeRecoversAControlledAtmosphericScatteringImage()
     {
         Color[] clear = { Color.FromArgb(39, 0, 80, 160), Color.FromArgb(75, 160, 0, 40),
@@ -250,6 +410,8 @@ public class PhotographicFilterTests
     [InlineData(5, 4, 1, 0)]
     [InlineData(5, 4, 2, 1)]
     [InlineData(5, 4, 50, 50)]
+    [InlineData(257, 3, 7, 16)]
+    [InlineData(4096, 1, 7, 64)]
     public void DehazeMatchesScalarDarkChannelAndCrossGuidedReference(int width, int height, int radius, int refinement)
     {
         using var data = new Buffer32(width, height);

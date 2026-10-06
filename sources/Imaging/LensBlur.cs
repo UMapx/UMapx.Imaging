@@ -194,8 +194,10 @@ namespace UMapx.Imaging
             var spans = new int[radius + 1][];
             for (int r = 1; r <= radius; r++) if (used[r]) spans[r] = Aperture(r);
 
-            // Row prefix sums turn each aperture row into one constant-time interval query.
-            int pitch = checked(width + 1), length = checked(pitch * height);
+            // Each block sum is at most 128 * 255 * 255, exactly representable in float.
+            const int blockSize = 128;
+            int blocks = (width + blockSize - 1) / blockSize;
+            int pitch = checked(width + blocks), length = checked(pitch * height);
             var blue = new float[length];
             var green = new float[length];
             var red = new float[length];
@@ -205,7 +207,7 @@ namespace UMapx.Imaging
                 int row = y * pitch;
                 for (int x = 0; x < width; x++)
                 {
-                    int k = (y * width + x) * 4, i = row + x;
+                    int k = (y * width + x) * 4, i = row + x + x / blockSize;
                     float a = source[k + 3];
                     blue[i + 1] = blue[i] + source[k] * a;
                     green[i + 1] = green[i] + source[k + 1] * a;
@@ -221,8 +223,9 @@ namespace UMapx.Imaging
                 {
                     int r = radii[y * width + x];
                     if (r == 0) continue;
+                    int k = (y * width + x) * 4;
                     int[] span = spans[r];
-                    float b = 0, g = 0, redSum = 0, a = 0;
+                    float b = 0, g = 0, redSum = 0, a = 0, alphaDelta = 0;
                     int count = 0;
                     for (int dy = Math.Max(-r, -y); dy <= Math.Min(r, height - 1 - y); dy++)
                     {
@@ -230,16 +233,27 @@ namespace UMapx.Imaging
                         int left = Math.Max(0, x + span[index]);
                         int right = Math.Min(width - 1, x + span[index + 1]);
                         if (left > right) continue;
-                        int row = (y + dy) * pitch, start = row + left, end = row + right + 1;
-                        b += blue[end] - blue[start]; g += green[end] - green[start];
-                        redSum += red[end] - red[start]; a += alpha[end] - alpha[start];
-                        count += right - left + 1;
+                        int row = (y + dy) * pitch;
+                        while (left <= right)
+                        {
+                            int block = left / blockSize;
+                            int next = Math.Min(right + 1, (block + 1) * blockSize);
+                            int start = row + left + block, end = row + next + block;
+                            float weight = alpha[end] - alpha[start];
+                            // Differences from the center keep flat colors exact, even for large apertures.
+                            b += blue[end] - blue[start] - source[k] * weight;
+                            g += green[end] - green[start] - source[k + 1] * weight;
+                            redSum += red[end] - red[start] - source[k + 2] * weight;
+                            alphaDelta += weight - source[k + 3] * (next - left);
+                            a += weight;
+                            count += next - left;
+                            left = next;
+                        }
                     }
-                    int k = (y * width + x) * 4;
-                    output[k] = a > 0 ? Maths.Byte(b / a) : (byte)0;
-                    output[k + 1] = a > 0 ? Maths.Byte(g / a) : (byte)0;
-                    output[k + 2] = a > 0 ? Maths.Byte(redSum / a) : (byte)0;
-                    output[k + 3] = Maths.Byte(a / count);
+                    output[k] = a > 0 ? Maths.Byte(source[k] + b / a) : (byte)0;
+                    output[k + 1] = a > 0 ? Maths.Byte(source[k + 1] + g / a) : (byte)0;
+                    output[k + 2] = a > 0 ? Maths.Byte(source[k + 2] + redSum / a) : (byte)0;
+                    output[k + 3] = Maths.Byte(source[k + 3] + alphaDelta / count);
                 }
             });
             fixed (byte* pixels = output)

@@ -149,7 +149,7 @@ namespace UMapx.Imaging
                 byte* row = data + (long)y * bmData.Stride;
                 for (int x = 0; x < bmData.Width; x++, row += 4)
                 {
-                    int index = Maths.Byte(0.0722f * row[0] + 0.7152f * row[1] + 0.2126f * row[2]);
+                    int index = Maths.Byte(row[1] + 0.0722f * (row[0] - row[1]) + 0.2126f * (row[2] - row[1]));
                     if (Inverted) index = 255 - index;
                     for (int c = 0; c < 3; c++) row[c] = Maths.Byte(row[c] + strength * (tables[c][index] - row[c]));
                 }

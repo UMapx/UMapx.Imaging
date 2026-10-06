@@ -186,17 +186,17 @@ namespace UMapx.Imaging
                 {
                     float dx = x - cx, dy = y - cy;
                     if (dx == 0 && dy == 0) continue;
+                    int k = (y * width + x) * 4;
                     float b = 0, g = 0, r = 0, a = 0;
                     for (int i = 0; i < samples; i++)
                     {
                         float sx = mode == RadialBlurMode.Spin ? cx + dx * cos[i] - dy * sin[i] : cx + dx * scale[i];
                         float sy = mode == RadialBlurMode.Spin ? cy + dx * sin[i] + dy * cos[i] : cy + dy * scale[i];
-                        Sample(source, width, height, sx, sy, ref b, ref g, ref r, ref a);
+                        Sample(source, width, height, sx, sy, k, ref b, ref g, ref r, ref a);
                     }
-                    int k = (y * width + x) * 4;
-                    output[k] = a > 0 ? Maths.Byte(b / a) : (byte)0;
-                    output[k + 1] = a > 0 ? Maths.Byte(g / a) : (byte)0;
-                    output[k + 2] = a > 0 ? Maths.Byte(r / a) : (byte)0;
+                    output[k] = a > 0 ? Maths.Byte(source[k] + b / a) : (byte)0;
+                    output[k + 1] = a > 0 ? Maths.Byte(source[k + 1] + g / a) : (byte)0;
+                    output[k + 2] = a > 0 ? Maths.Byte(source[k + 2] + r / a) : (byte)0;
                     output[k + 3] = Maths.Byte(a / samples);
                 }
             });
@@ -210,7 +210,7 @@ namespace UMapx.Imaging
 
         #region Private voids
         // Accumulates a bilinear sample in premultiplied-alpha space, with replicated borders.
-        private static void Sample(byte[] pixels, int width, int height, float x, float y,
+        private static void Sample(byte[] pixels, int width, int height, float x, float y, int center,
             ref float blue, ref float green, ref float red, ref float alpha)
         {
             x = Math.Max(0, Math.Min(width - 1, x));
@@ -226,6 +226,9 @@ namespace UMapx.Imaging
                 float v01 = pixels[i01 + c], v11 = pixels[i11 + c];
                 if (c < 3)
                 {
+                    // Sum color differences from the destination color to preserve constant regions.
+                    v00 -= pixels[center + c]; v10 -= pixels[center + c];
+                    v01 -= pixels[center + c]; v11 -= pixels[center + c];
                     v00 *= pixels[i00 + 3]; v10 *= pixels[i10 + 3];
                     v01 *= pixels[i01 + 3]; v11 *= pixels[i11 + 3];
                 }

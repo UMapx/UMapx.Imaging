@@ -118,6 +118,9 @@ namespace UMapx.Imaging
         /// <param name="bmData">Bitmap data.</param>
         public unsafe void Apply(BitmapData bmData)
         {
+            if (bmData.PixelFormat != PixelFormat.Format32bppArgb)
+                throw new NotSupportedException("Only support Format32bppArgb pixelFormat");
+
             if (rebuild) { Rebuild(); rebuild = false; }
             byte* data = (byte*)bmData.Scan0;
             Parallel.For(0, bmData.Height, y =>

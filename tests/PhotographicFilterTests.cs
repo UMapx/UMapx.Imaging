@@ -27,6 +27,14 @@ public class PhotographicFilterTests
 
     public static IEnumerable<object[]> IdentityCases() => Names.Select(name => new object[] { name });
 
+    public static IEnumerable<object[]> UnsupportedCases()
+    {
+        foreach (string name in Names)
+            foreach (PixelFormat format in new[] { PixelFormat.Format24bppRgb, PixelFormat.Format32bppRgb,
+                PixelFormat.Format32bppPArgb, PixelFormat.Format8bppIndexed })
+                yield return new object[] { name, format };
+    }
+
     [Theory]
     [MemberData(nameof(IdentityCases))]
     public void NeutralSettingsPreserveAllBytesIncludingTransparentRgb(string name)
@@ -354,6 +362,25 @@ public class PhotographicFilterTests
         }
         filter.Apply(image);
         ImagingAuditTests.Same(expected, image);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnsupportedCases))]
+    public void UnsupportedBufferFormatsAreRejected(string name, PixelFormat format)
+    {
+        using var invalidData = new Buffer32(3, 2);
+        using var validData = new Buffer32(3, 2);
+        invalidData.Data.PixelFormat = format;
+        foreach (bool neutral in new[] { false, true })
+        {
+            IBitmapFilter filter = Filter(name, neutral);
+            Assert.Throws<NotSupportedException>(() => filter.Apply(invalidData.Data));
+            if (filter is IBitmapFilter2 pair)
+            {
+                Assert.Throws<NotSupportedException>(() => pair.Apply(validData.Data, invalidData.Data));
+                Assert.Throws<NotSupportedException>(() => pair.Apply(invalidData.Data, validData.Data));
+            }
+        }
     }
 
     [Fact]
